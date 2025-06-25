@@ -1,0 +1,35 @@
+services:
+  stakeholders_service:
+    build:
+      context: ./services/stakeholders_service
+      dockerfile: Dockerfile
+    container_name: stakeholders_service
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres_db
+    environment:
+      POSTGRES_HOST: postgres_db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: stakeholders_db
+
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: stakeholders_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    attach: false
+
+volumes:
+  postgres_data:
+    driver: local
