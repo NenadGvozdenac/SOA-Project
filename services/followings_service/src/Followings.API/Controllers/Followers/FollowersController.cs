@@ -1,4 +1,5 @@
 using followings_service.src.Followings.Application.Features.Followers.FollowUser;
+using followings_service.src.Followings.Application.Features.Followers.GetFollowSuggestions;
 using followings_service.src.Followings.Application.Features.Followers.GetMyFollowers;
 using followings_service.src.Followings.Application.Features.Followers.UnfollowUser;
 using followings_service.src.Followings.BuildingBlocks.Core.Domain;
@@ -34,6 +35,13 @@ public class FollowersController(IMediator mediator) : BaseController
     public async Task<Result> GetMyFollowers()
     {
         var result = await mediator.Send(new GetMyFollowersQuery(this.GetUser()));
+        return result;
+    }
+
+    [HttpGet("suggestions")]
+    public async Task<Result> GetSuggestions()
+    {
+        var result = await mediator.Send(new GetFollowSuggestionsQuery(this.GetUser()));
         return result;
     }
 }
