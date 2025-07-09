@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"elektrohelper/backend/internal/app/utils/logger"
+	"soa-project/stakeholders-service/internal/app/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )

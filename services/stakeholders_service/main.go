@@ -1,9 +1,9 @@
 package main
 
 import (
-	"elektrohelper/backend/config"
-	"elektrohelper/backend/internal/app/utils/logger"
-	"elektrohelper/backend/routes"
+	"soa-project/stakeholders-service/config"
+	"soa-project/stakeholders-service/internal/app/utils/logger"
+	"soa-project/stakeholders-service/routes"
 	"sync"
 
 	"github.com/gin-contrib/cors"
@@ -30,7 +30,13 @@ func startServer() error {
 
 	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"}, // Allow requests from localhost:5173
+		AllowOrigins: []string{
+			"http://localhost:5173",
+			"http://localhost:9090",
+			"http://localhost:5000",
+			"http://followings_service:5000",
+			"http://stakeholders_service:8080",
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},

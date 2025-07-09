@@ -1,11 +1,14 @@
 package handlers
 
 import (
-	"elektrohelper/backend/config"
-	"elektrohelper/backend/internal/app/dtos"
-	"elektrohelper/backend/internal/app/utils"
-	"elektrohelper/backend/internal/domain/models"
 	"net/http"
+	"soa-project/stakeholders-service/config"
+	"soa-project/stakeholders-service/internal/app/dtos"
+	"soa-project/stakeholders-service/internal/app/http_clients"
+	"soa-project/stakeholders-service/internal/app/utils"
+	"soa-project/stakeholders-service/internal/app/utils/logger"
+	"soa-project/stakeholders-service/internal/domain/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -48,6 +51,17 @@ func Register(c *gin.Context) {
 	if err := config.DB.Create(&newUser).Error; err != nil {
 		utils.CreateGinResponse(c, "Failed to create user", http.StatusInternalServerError, nil)
 		return
+	}
+
+	// Create user in followings service
+	followingsClient := http_clients.NewFollowingsServiceClient()
+	userIdStr := strconv.FormatUint(uint64(newUser.ID), 10)
+	logger.Info("Creating user " + userIdStr + " in followings service")
+	if err := followingsClient.CreateUser(userIdStr); err != nil {
+		logger.Error("Failed to create user in followings service: " + err.Error())
+		// Don't fail the registration, just log the error
+	} else {
+		logger.Info("Successfully created user " + userIdStr + " in followings service")
 	}
 
 	role := models.Role{}

@@ -15,6 +15,13 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: stakeholders_db
+      FOLLOWINGS_SERVICE_URL: http://followings_service:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   postgres_db:
     container_name: postgres_db
@@ -39,12 +46,22 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_started
+      stakeholders_service:
+        condition: service_healthy
     environment:
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: password
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   neo4j:
     container_name: neo4j_db

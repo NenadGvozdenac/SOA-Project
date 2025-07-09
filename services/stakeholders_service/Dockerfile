@@ -38,8 +38,8 @@ FROM alpine:latest
 
 WORKDIR /root/
 
-# Add necessary SSL certificates for HTTPS
-RUN apk --no-cache add ca-certificates
+# Add necessary SSL certificates for HTTPS and curl for health checks
+RUN apk --no-cache add ca-certificates curl
 
 # Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/main ./

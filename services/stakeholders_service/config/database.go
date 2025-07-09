@@ -1,8 +1,8 @@
 package config
 
 import (
-	"elektrohelper/backend/internal/app/utils"
 	"fmt"
+	"soa-project/stakeholders-service/internal/app/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

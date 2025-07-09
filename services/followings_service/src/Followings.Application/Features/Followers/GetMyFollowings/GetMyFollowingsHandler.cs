@@ -4,17 +4,17 @@ using followings_service.src.Followings.BuildingBlocks.Infrastructure.Stakeholde
 using MediatR;
 using Neo4j.Driver;
 
-namespace followings_service.src.Followings.Application.Features.Followers.GetMyFollowers;
+namespace followings_service.src.Followings.Application.Features.Followers.GetMyFollowings;
 
-public class GetMyFollowersHandler(
+public class GetMyFollowingsHandler(
     IGraphDatabaseContext context,
     IStakeholdersServiceClient stakeholdersServiceClient
-) : IRequestHandler<GetMyFollowersQuery, Result<List<FollowerDTO>>>
+) : IRequestHandler<GetMyFollowingsQuery, Result<List<FollowingDTO>>>
 {
-    public async Task<Result<List<FollowerDTO>>> Handle(GetMyFollowersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<FollowingDTO>>> Handle(GetMyFollowingsQuery request, CancellationToken cancellationToken)
     {
         var query = @"
-            MATCH (f:User)-[:FOLLOWS]->(u:User {id: $userId})
+            MATCH (u:User {id: $userId})-[:FOLLOWS]->(f:User)
             RETURN f.id AS id
         ";
 
@@ -33,14 +33,14 @@ public class GetMyFollowersHandler(
 
             if (!userIds.Any())
             {
-                return Result<List<FollowerDTO>>.Success(new List<FollowerDTO>());
+                return Result<List<FollowingDTO>>.Success(new List<FollowingDTO>());
             }
 
             // Get detailed user information from stakeholders service
             var userDetails = await stakeholdersServiceClient.GetUsersByIdsAsync(userIds);
 
-            // Convert to FollowerDTO with detailed information
-            var followers = userDetails.Select(user => new FollowerDTO(
+            // Convert to FollowingDTO with detailed information
+            var followings = userDetails.Select(user => new FollowingDTO(
                 user.Id,
                 user.Username,
                 user.Name,
@@ -48,11 +48,11 @@ public class GetMyFollowersHandler(
                 user.ProfilePicture
             )).ToList();
 
-            return Result<List<FollowerDTO>>.Success(followers);
+            return Result<List<FollowingDTO>>.Success(followings);
         }
         catch (Exception e)
         {
-            return Result<List<FollowerDTO>>.Failure(e.Message);
+            return Result<List<FollowingDTO>>.Failure(e.Message);
         }
     }
 }
