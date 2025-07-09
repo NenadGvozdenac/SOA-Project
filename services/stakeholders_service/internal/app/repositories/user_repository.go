@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"elektrohelper/backend/config"
-	"elektrohelper/backend/internal/domain/interfaces"
-	"elektrohelper/backend/internal/domain/models"
 	"log"
+	"soa-project/stakeholders-service/config"
+	"soa-project/stakeholders-service/internal/domain/interfaces"
+	"soa-project/stakeholders-service/internal/domain/models"
 )
 
 // UserRepository is the implementation of UserRepositoryInterface
@@ -57,6 +57,16 @@ func (repo *UserRepository) DeleteByID(id uint) error {
 		return err
 	}
 	return nil
+}
+
+// GetByIDs retrieves multiple users by their IDs
+func (repo *UserRepository) GetByIDs(ids []uint) (*[]models.User, error) {
+	var users []models.User
+	if err := config.DB.Where("id IN ?", ids).Find(&users).Error; err != nil {
+		log.Printf("Error retrieving users by IDs: %v", err)
+		return nil, err
+	}
+	return &users, nil
 }
 
 // UpdateByID updates a user's data by ID

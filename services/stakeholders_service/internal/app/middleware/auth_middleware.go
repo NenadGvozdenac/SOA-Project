@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"elektrohelper/backend/internal/app/utils"
 	"net/http"
+	"soa-project/stakeholders-service/internal/app/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"

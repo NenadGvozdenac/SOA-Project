@@ -8,3 +8,15 @@ type UserResponseDTO struct {
 	Phone   string `json:"phone"`
 	Role    string `json:"role"`
 }
+
+type BatchUserRequest struct {
+	UserIds []string `json:"userIds" binding:"required"`
+}
+
+type UserDetailsDTO struct {
+	Id             string  `json:"id"`
+	Username       string  `json:"username"`
+	Name           string  `json:"name"`
+	Email          string  `json:"email"`
+	ProfilePicture *string `json:"profilePicture"`
+}

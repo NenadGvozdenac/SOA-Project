@@ -1,6 +1,7 @@
 
 using System.Reflection;
 using followings_service.src.Followings.BuildingBlocks.Infrastructure.Database;
+using followings_service.src.Followings.BuildingBlocks.Infrastructure.StakeholdersService;
 
 namespace followings_service.src.Followings.API.Startup;
 
@@ -10,6 +11,7 @@ public static class ApplicationStartup
     {
         SetupDatabases(services);
         SetupMediatR(services);
+        SetupHttpClients(services);
 
         return services;
     }
@@ -22,5 +24,10 @@ public static class ApplicationStartup
     private static void SetupMediatR(IServiceCollection services)
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+    }
+
+    private static void SetupHttpClients(IServiceCollection services)
+    {
+        services.AddHttpClient<IStakeholdersServiceClient, StakeholdersServiceClient>();
     }
 }

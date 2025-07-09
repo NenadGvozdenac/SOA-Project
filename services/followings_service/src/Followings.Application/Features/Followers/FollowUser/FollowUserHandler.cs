@@ -17,12 +17,12 @@ public record FollowUserHandler(IGraphDatabaseContext context) : IRequestHandler
 
         if (!await UserExists(request.FollowerId))
         {
-            await CreateUser(request.FollowerId);
+            return Result<FollowUserDTO>.Failure("User to follow does not exist");
         }
 
         if (!await UserExists(request.UserDTO.Id))
         {
-            await CreateUser(request.UserDTO.Id);
+            return Result<FollowUserDTO>.Failure("Current user does not exist");
         }
 
         if (await UserAlreadyFollows(request.UserDTO.Id, request.FollowerId))
@@ -56,22 +56,6 @@ public record FollowUserHandler(IGraphDatabaseContext context) : IRequestHandler
         {
             return Result<FollowUserDTO>.Failure(e.Message);
         }
-    }
-
-    private async Task CreateUser(string id)
-    {
-        var query = @"
-            CREATE (u:User {id: $userId})
-            RETURN u.id as UserId
-        ";
-
-        var parameters = new Dictionary<string, object>
-        {
-            { "userId", id }
-        };
-
-        var resultCursor = await context.RunAsync(query, parameters);
-        await resultCursor.SingleAsync();
     }
 
     private async Task<bool> UserAlreadyFollows(string id, string followerId)
