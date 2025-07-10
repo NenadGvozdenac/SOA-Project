@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"soa-project/stakeholders-service/config"
 	"soa-project/stakeholders-service/internal/app/dtos"
-	"soa-project/stakeholders-service/internal/app/http_clients"
+	"soa-project/stakeholders-service/internal/app/saga"
 	"soa-project/stakeholders-service/internal/app/utils"
 	"soa-project/stakeholders-service/internal/app/utils/logger"
 	"soa-project/stakeholders-service/internal/domain/models"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -22,46 +21,13 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Check if the email is already in use
-	var existingUser models.User
-	if err := config.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
-		utils.CreateGinResponse(c, "Email already in use", http.StatusBadRequest, nil)
-		return
-	}
-
-	// Hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	// Create and execute the user registration saga
+	userSaga := saga.NewUserRegistrationSaga(user)
+	newUser, err := userSaga.Execute()
 	if err != nil {
-		utils.CreateGinResponse(c, "Failed to hash password", http.StatusInternalServerError, nil)
+		logger.Error("User registration saga failed: " + err.Error())
+		utils.CreateGinResponse(c, "Failed to register user: "+err.Error(), http.StatusInternalServerError, nil)
 		return
-	}
-
-	newUser := models.User{
-		Name:      user.Name,
-		Surname:   user.Surname,
-		Email:     user.Email,
-		Password:  string(hashedPassword),
-		Username:  user.Username,
-		Biography: "",
-		Moto:      "",
-		RoleId:    user.RoleId,
-		Blocked:   false,
-	}
-
-	if err := config.DB.Create(&newUser).Error; err != nil {
-		utils.CreateGinResponse(c, "Failed to create user", http.StatusInternalServerError, nil)
-		return
-	}
-
-	// Create user in followings service
-	followingsClient := http_clients.NewFollowingsServiceClient()
-	userIdStr := strconv.FormatUint(uint64(newUser.ID), 10)
-	logger.Info("Creating user " + userIdStr + " in followings service")
-	if err := followingsClient.CreateUser(userIdStr); err != nil {
-		logger.Error("Failed to create user in followings service: " + err.Error())
-		// Don't fail the registration, just log the error
-	} else {
-		logger.Info("Successfully created user " + userIdStr + " in followings service")
 	}
 
 	role := models.Role{}

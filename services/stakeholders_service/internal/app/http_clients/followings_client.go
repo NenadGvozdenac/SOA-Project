@@ -85,3 +85,49 @@ func (c *FollowingsServiceClient) CreateUser(userID string) error {
 
 	return fmt.Errorf("failed to create user in followings service after %d attempts", maxRetries)
 }
+
+func (c *FollowingsServiceClient) DeleteUser(userID string) error {
+	logger.Info(fmt.Sprintf("Attempting to delete user %s from followings service at %s", userID, c.baseURL))
+
+	maxRetries := 3
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		url := fmt.Sprintf("%s/api/users/%s", c.baseURL, userID)
+		logger.Info(fmt.Sprintf("Attempt %d/%d: Sending DELETE request to %s", attempt, maxRetries, url))
+
+		req, err := http.NewRequest("DELETE", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create delete request: %w", err)
+		}
+
+		resp, err := c.client.Do(req)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Attempt %d failed with error: %v", attempt, err))
+			if attempt == maxRetries {
+				return fmt.Errorf("failed to send delete request after %d attempts: %w", maxRetries, err)
+			}
+			// Wait before retrying
+			logger.Info(fmt.Sprintf("Waiting %d seconds before retry...", attempt))
+			time.Sleep(time.Duration(attempt) * time.Second)
+			continue
+		}
+
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusNotFound {
+			logger.Info(fmt.Sprintf("Successfully deleted user %s from followings service (or user was not found)", userID))
+			return nil
+		}
+
+		logger.Error(fmt.Sprintf("Attempt %d failed with status code: %d", attempt, resp.StatusCode))
+
+		if attempt == maxRetries {
+			return fmt.Errorf("failed to delete user from followings service after %d attempts, status: %d", maxRetries, resp.StatusCode)
+		}
+
+		// Wait before retrying
+		logger.Info(fmt.Sprintf("Waiting %d seconds before retry...", attempt))
+		time.Sleep(time.Duration(attempt) * time.Second)
+	}
+
+	return fmt.Errorf("failed to delete user from followings service after %d attempts", maxRetries)
+}
