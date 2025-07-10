@@ -37,4 +37,8 @@ func setupProtectedRoutes(api *gin.RouterGroup) {
 	protected.GET("/users", handlers.GetAllUsers)
 	// protected.GET("/users/:id", handlers.GetUserById)
 	// protected.GET("/user", handlers.GetActiveUser)
+
+	// Saga monitoring routes
+	protected.GET("/sagas", handlers.GetAllSagas)
+	protected.GET("/sagas/:sagaId", handlers.GetSagaStatus)
 }
