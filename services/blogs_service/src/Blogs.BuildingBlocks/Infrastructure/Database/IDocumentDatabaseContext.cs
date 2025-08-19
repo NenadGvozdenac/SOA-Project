@@ -10,4 +10,7 @@ public interface IDocumentDatabaseContext
     public Task<IQueryable<T>> GetCollection<T>(string collectionName, int pageNumber, int pageSize, Expression<Func<T, bool>> filter) where T : BaseEntity;
     public Task<T> GetDocumentById<T>(string collectionName, string id) where T : BaseEntity;
     public Task AddDocument<T>(string collectionName, T document) where T : BaseEntity;
+    public Task UpdateDocument<T>(string collectionName, T document) where T : BaseEntity;
+    public Task DeleteDocument<T>(string collectionName, string id) where T : BaseEntity;
+    public Task<T> GetDocumentByKeys<T>(string collectionName, Dictionary<string, object> keys) where T : BaseEntity;
 }

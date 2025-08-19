@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using blogs_service.src.Blogs.BuildingBlocks.Infrastructure;
 using blogs_service.src.Blogs.Application.Features.CreateBlog;
+using blogs_service.src.Blogs.Application.Features.CreateComment;
+using blogs_service.src.Blogs.Application.Features.UpdateComment;
+using blogs_service.src.Blogs.Application.Features.LikeBlog;
 using Microsoft.AspNetCore.Authorization;
 
 namespace blogs_service.src.Blogs.API.Controllers
@@ -60,6 +63,38 @@ namespace blogs_service.src.Blogs.API.Controllers
             // const base64String = "iVBORw0KGgoAAAANSUhEUgAA..."; // iz baze
 
             // <img src={`data:image/png;base64,${base64String}`} alt="Blog slika" />
+        }
+
+        [HttpPost]
+        [Route("comment")]
+        public async Task<IActionResult> CreateComment([FromBody] CommentDTO commentDTO)
+        {
+            var result = await mediator.Send(new CreateCommentCommand(this.GetUser(), commentDTO.BlogId, commentDTO.Content));
+            return CreateResponse(result);
+        }
+
+        [HttpPut]
+        [Route("comment/update")]
+        public async Task<IActionResult> UpdateComment([FromBody] UpdatedCommentDTO upadtedCommentDTO)
+        {
+            var result = await mediator.Send(new UpdateCommentCommand(this.GetUser(), upadtedCommentDTO.CommentId, upadtedCommentDTO.Content));
+            return CreateResponse(result);
+        }
+
+        [HttpPost]
+        [Route("like/{blogId}")]
+        public async Task<IActionResult> LikeBlog(string blogId)
+        {
+            var result = await mediator.Send(new LikeBlogCommand(this.GetUser(), blogId));
+            return CreateResponse(result);
+        }
+
+        [HttpDelete]
+        [Route("dislike/{blogId}")]
+        public async Task<IActionResult> DislikeBlog(string blogId)
+        {
+            var result = await mediator.Send(new DislikeBlogCommand(this.GetUser(), blogId));
+            return CreateResponse(result);
         }
     }
 }

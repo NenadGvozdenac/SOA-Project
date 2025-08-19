@@ -45,4 +45,23 @@ public class MongoDatabaseContext : IDocumentDatabaseContext
         var collection = _database.GetCollection<T>(collectionName);
         return collection.Find(document => document.Id == id).FirstOrDefaultAsync();
     }
+
+    public Task UpdateDocument<T>(string collectionName, T document) where T : BaseEntity
+    {
+        var collection = _database.GetCollection<T>(collectionName);
+        return collection.ReplaceOneAsync(doc => doc.Id == document.Id, document);
+    }
+
+    public Task DeleteDocument<T>(string collectionName, string id) where T : BaseEntity
+    {
+        var collection = _database.GetCollection<T>(collectionName);
+        return collection.DeleteOneAsync(document => document.Id == id);
+    }
+    
+    public Task<T> GetDocumentByKeys<T>(string collectionName, Dictionary<string, object> keys) where T : BaseEntity
+    {
+        var collection = _database.GetCollection<T>(collectionName);
+        var filter = Builders<T>.Filter.And(keys.Select(k => Builders<T>.Filter.Eq(k.Key, k.Value)));
+        return collection.Find(filter).FirstOrDefaultAsync();
+    }
 }
