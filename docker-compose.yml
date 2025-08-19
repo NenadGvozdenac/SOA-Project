@@ -23,6 +23,31 @@ services:
       retries: 3
       start_period: 40s
 
+  blogs_service:
+    build:
+      context: ./services/blogs_service
+      dockerfile: Dockerfile
+    container_name: blogs_service
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo_db
+    environment:
+      MONGO_HOST: mongo_db
+      MONGO_PORT: 27017
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: blogs_db
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8081
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   postgres_db:
     container_name: postgres_db
     image: postgres:latest
@@ -76,6 +101,22 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     attach: false
+  
+  mongo_db:
+    container_name: mongo_db
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_HOST: mongo_db
+      MONGO_PORT: 27017
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: blogs_db
+    ports:
+      - "27017:27017"
+    attach: false
 
 volumes:
   postgres_data:
@@ -83,4 +124,6 @@ volumes:
   neo4j_data:
     driver: local
   neo4j_logs:
+    driver: local
+  mongo_data:
     driver: local

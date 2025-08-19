@@ -20,3 +20,15 @@ type UserDetailsDTO struct {
 	Email          string  `json:"email"`
 	ProfilePicture *string `json:"profilePicture"`
 }
+
+type UserUpdateDTO struct {
+	Name            string `json:"name"`
+	Surname         string `json:"surname"`
+	Email           string `json:"email"`
+	Username        string `json:"username"`
+	Biography       string `json:"biography"`
+	Moto            string `json:"motto"`
+	OldPassword     string `json:"oldPassword"`
+	NewPassword     string `json:"newPassword"`
+	ConfirmPassword string `json:"confirmPassword"`
+}

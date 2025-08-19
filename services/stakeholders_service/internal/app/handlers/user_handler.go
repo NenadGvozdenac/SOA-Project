@@ -5,9 +5,11 @@ import (
 	"soa-project/stakeholders-service/internal/app/dtos"
 	"soa-project/stakeholders-service/internal/app/repositories"
 	"soa-project/stakeholders-service/internal/app/utils"
+	"soa-project/stakeholders-service/internal/domain/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetAllUsers(c *gin.Context) {
@@ -27,6 +29,65 @@ func GetAllUsers(c *gin.Context) {
 	}
 
 	utils.CreateGinResponse(c, "Users retrieved successfully", http.StatusOK, users)
+}
+
+// UpdateUser ažurira podatke korisnika po ID-u
+func UpdateUser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.CreateGinResponse(c, "Invalid user ID", http.StatusBadRequest, nil)
+		return
+	}
+
+	var userUpdate dtos.UserUpdateDTO
+	if err := c.ShouldBindJSON(&userUpdate); err != nil {
+		utils.CreateGinResponse(c, "Invalid request body", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Dohvati korisnika iz baze
+	existingUser, err := repositories.NewUserRepository().GetByID(uint(id))
+	if err != nil || existingUser == nil {
+		utils.CreateGinResponse(c, "User not found", http.StatusNotFound, nil)
+		return
+	}
+
+	// Ako korisnik menja lozinku, proveri da li je stara lozinka tačna
+	if userUpdate.NewPassword != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(userUpdate.OldPassword)); err != nil {
+			utils.CreateGinResponse(c, "Old password is incorrect", http.StatusBadRequest, nil)
+			return
+		}
+		if userUpdate.NewPassword != userUpdate.ConfirmPassword {
+			utils.CreateGinResponse(c, "New passwords do not match", http.StatusBadRequest, nil)
+			return
+		}
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userUpdate.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to hash password", http.StatusInternalServerError, nil)
+		return
+	}
+
+	user := models.User{
+		Name:      userUpdate.Name,
+		Surname:   userUpdate.Surname,
+		Email:     userUpdate.Email,
+		Username:  userUpdate.Username,
+		Biography: userUpdate.Biography,
+		Moto:      userUpdate.Moto,
+		Password:  string(hashedPassword),
+	}
+
+	err = repositories.NewUserRepository().UpdateByID(uint(id), &user)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to update user", http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.CreateGinResponse(c, "User updated successfully", http.StatusOK, nil)
 }
 
 func GetUsersByIds(c *gin.Context) {
