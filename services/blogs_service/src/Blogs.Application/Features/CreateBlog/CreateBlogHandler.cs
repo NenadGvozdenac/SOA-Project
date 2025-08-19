@@ -17,7 +17,7 @@ namespace blogs_service.src.Blogs.Application.Features.CreateBlog
         ImageBase64 = request.ImageBase64
       };
 
-      await documentDatabaseContext.AddDocument("blogs_db", blog);
+      await documentDatabaseContext.AddDocument("blogs", blog);
 
       return Result<CreateBlogDTO>.Success(new CreateBlogDTO(
         blog.Id,
