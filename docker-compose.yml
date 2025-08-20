@@ -48,7 +48,7 @@ services:
       retries: 3
       start_period: 40s
 
-  tours_service: # dotnet ef migrations add InitialCreate u terminali za tours_service
+  tours_service: # dotnet ef migrations add InitialCreate - u terminali za tours_service
     build:
       context: ./services/tours_service
       dockerfile: Dockerfile

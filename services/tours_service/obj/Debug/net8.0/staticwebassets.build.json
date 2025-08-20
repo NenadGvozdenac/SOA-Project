@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"9ekb6VCoqZeUfHPLfaXGLXS7l5P/O/FL0QjbuBG7rTg=","Source":"tours_service","BasePath":"_content/tours_service","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "zNJf7D7jU5IaZJM12NqHSM8MnvgCOiesEhe6Q2/Lz8k=",
+  "Source": "tours_service",
+  "BasePath": "_content/tours_service",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
