@@ -156,6 +156,25 @@ services:
     ports:
       - "27017:27017"
     attach: false
+  
+  frontend-app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevent overwriting node_modules
+    environment:
+      VITE_API_URL: http://localhost:5173
+      VITE_STAKEHOLDERS_URL: http://localhost:8080/api
+      VITE_BLOGS_URL: http://localhost:8081/api
+      VITE_FOLLOWINGS_URL: http://localhost:9090/api
+    depends_on:
+      - stakeholders_service
+      - blogs_service
+      - followings_service
 
 volumes:
   postgres_data:
