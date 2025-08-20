@@ -28,3 +28,5 @@ EXPOSE 8081
 
 # Run the app
 CMD ["dotnet", "blogs_service.dll"]
+
+# dotnet ef migrations add InitialCreate

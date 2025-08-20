@@ -48,6 +48,31 @@ services:
       retries: 3
       start_period: 40s
 
+  tours_service: # dotnet ef migrations add InitialCreate u terminali za tours_service
+    build:
+      context: ./services/tours_service
+      dockerfile: Dockerfile
+    container_name: tours_service
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres_tours_db
+    environment:
+      POSTGRES_HOST: postgres_tours_db
+      POSTGRES_PORT: 5433
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tours_db
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8082
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   postgres_db:
     container_name: postgres_db
     image: postgres:latest
@@ -60,6 +85,20 @@ services:
       - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
+    attach: false
+    
+  postgres_tours_db:
+    container_name: postgres_tours_db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tours_db
+    volumes:
+      - postgres_tours_data:/var/lib/postgresql/data
+      - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
     attach: false
 
   followings_service:
@@ -120,6 +159,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_tours_data:
     driver: local
   neo4j_data:
     driver: local
