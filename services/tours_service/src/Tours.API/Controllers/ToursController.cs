@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using tours_service.src.Tours.API.DTOs;
 using tours_service.src.Tours.Application.Features.CreateTour;
 using tours_service.src.Tours.Application.Features.GetAllTours;
+using tours_service.src.Tours.Application.Features.CreateTourReview;
 using tours_service.src.Tours.BuildingBlocks.Core.Domain;
 
 namespace tours_service.src.Tours.API.Controllers;
@@ -25,6 +26,14 @@ public class ToursController(IMediator _mediator) : BaseController
     public async Task<IActionResult> GetAll()
     {
         var result = await _mediator.Send(new GetAllToursQuery(this.GetUser()));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("review")]
+    public async Task<IActionResult> CreateTourReview([FromBody] TourReviewDTO tourReviewDTO)
+    {
+        var result = await _mediator.Send(new CreateTourReviewCommand(this.GetUser(), tourReviewDTO));
         return CreateResponse(result);
     }
 }

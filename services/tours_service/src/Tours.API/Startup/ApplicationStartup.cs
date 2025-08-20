@@ -24,6 +24,7 @@ public static class ApplicationStartup
             options.UseNpgsql("Host=postgres_tours_db;Port=5432;Database=tours_db;Username=postgres;Password=postgres;SslMode=Disable"));
 
         services.AddScoped<ICrudRepository<Tour>, CrudDatabaseRepository<Tour, ToursContext>>();
+        services.AddScoped<ICrudRepository<TourReview>, CrudDatabaseRepository<TourReview, ToursContext>>();
     }
 
     private static void SetupMediatR(IServiceCollection services)

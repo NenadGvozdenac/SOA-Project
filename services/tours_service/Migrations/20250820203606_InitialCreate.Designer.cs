@@ -13,7 +13,7 @@ using tours_service.src.Tours.Infrastructure.Database;
 namespace tours_service.Migrations
 {
     [DbContext(typeof(ToursContext))]
-    [Migration("20250820001744_InitialCreate")]
+    [Migration("20250820203606_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -65,6 +65,52 @@ namespace tours_service.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tours", "tours");
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourReview", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CheckTourDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImageBase64")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ReviewerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TourId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourReviews", "tours");
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourReview", b =>
+                {
+                    b.HasOne("tours_service.src.Tours.Application.Domain.Tour", null)
+                        .WithMany()
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
