@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blogs_service", "blogs_serv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "followings_service", "followings_service\followings_service.csproj", "{2616FCE9-3BC0-D929-994E-380B78E48DB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tours_service", "tours_service\tours_service.csproj", "{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2616FCE9-3BC0-D929-994E-380B78E48DB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2616FCE9-3BC0-D929-994E-380B78E48DB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2616FCE9-3BC0-D929-994E-380B78E48DB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
