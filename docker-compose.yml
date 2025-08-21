@@ -171,10 +171,12 @@ services:
       VITE_STAKEHOLDERS_URL: http://localhost:8080/api
       VITE_BLOGS_URL: http://localhost:8081/api
       VITE_FOLLOWINGS_URL: http://localhost:9090/api
+      VITE_TOURS_URL: http://localhost:8082/api
     depends_on:
       - stakeholders_service
       - blogs_service
       - followings_service
+      - tours_service
 
 volumes:
   postgres_data:
