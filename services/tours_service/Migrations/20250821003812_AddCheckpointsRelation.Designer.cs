@@ -13,8 +13,8 @@ using tours_service.src.Tours.Infrastructure.Database;
 namespace tours_service.Migrations
 {
     [DbContext(typeof(ToursContext))]
-    [Migration("20250820203606_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250821003812_AddCheckpointsRelation")]
+    partial class AddCheckpointsRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,6 +26,44 @@ namespace tours_service.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.Checkpoint", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageBase64")
+                        .HasColumnType("text");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("TourId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("Checkpoints", "tours");
+                });
 
             modelBuilder.Entity("tours_service.src.Tours.Application.Domain.Tour", b =>
                 {
@@ -102,6 +140,15 @@ namespace tours_service.Migrations
                     b.HasIndex("TourId");
 
                     b.ToTable("TourReviews", "tours");
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.Checkpoint", b =>
+                {
+                    b.HasOne("tours_service.src.Tours.Application.Domain.Tour", null)
+                        .WithMany()
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourReview", b =>
