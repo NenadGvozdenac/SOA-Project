@@ -13,8 +13,8 @@ using tours_service.src.Tours.Infrastructure.Database;
 namespace tours_service.Migrations
 {
     [DbContext(typeof(ToursContext))]
-    [Migration("20250821003812_AddCheckpointsRelation")]
-    partial class AddCheckpointsRelation
+    [Migration("20250821130727_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
