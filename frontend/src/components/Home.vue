@@ -44,7 +44,7 @@
     <!-- Features Section -->
     <section class="features">
       <div class="container">
-        <div class="feature-card">
+        <div v-if="isAuthor()" class="feature-card" @click="goToTours" style="cursor:pointer;">
           <h3>🏢 Stakeholder Management</h3>
           <p>Comprehensive stakeholder management system with advanced features for tracking and managing business
             relationships, partnerships, and key contacts.</p>
@@ -103,6 +103,14 @@ const handleLogout = () => {
 
 const isAdmin = () => {
   return localStorage.getItem('userRole') == 'Admin';
+}
+
+const isAuthor = () => {
+  return localStorage.getItem('userRole') === 'Guide';
+}
+
+const goToTours = () => {
+  window.location.href = '/tours';
 }
 
 </script>

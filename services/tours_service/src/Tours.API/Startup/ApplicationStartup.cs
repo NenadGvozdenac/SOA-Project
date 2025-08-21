@@ -25,6 +25,7 @@ public static class ApplicationStartup
 
         services.AddScoped<ICrudRepository<Tour>, CrudDatabaseRepository<Tour, ToursContext>>();
         services.AddScoped<ICrudRepository<TourReview>, CrudDatabaseRepository<TourReview, ToursContext>>();
+        services.AddScoped<ICrudRepository<Checkpoint>, CrudDatabaseRepository<Checkpoint, ToursContext>>();
     }
 
     private static void SetupMediatR(IServiceCollection services)

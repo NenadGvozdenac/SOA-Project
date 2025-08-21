@@ -7,6 +7,7 @@ namespace tours_service.src.Tours.Infrastructure.Database
   {
     public DbSet<Tour> Tours { get; set; }
     public DbSet<TourReview> TourReviews { get; set; }
+    public DbSet<Checkpoint> Checkpoints { get; set; }
     public ToursContext(DbContextOptions<ToursContext> options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +20,12 @@ namespace tours_service.src.Tours.Infrastructure.Database
           .HasOne<Tour>()
           .WithMany()
           .HasForeignKey(tr => tr.TourId)
+          .OnDelete(DeleteBehavior.Cascade);
+          
+      modelBuilder.Entity<Tour>()
+          .HasMany<Checkpoint>()
+          .WithOne()
+          .HasForeignKey(c => c.TourId)
           .OnDelete(DeleteBehavior.Cascade);
     }
   }
