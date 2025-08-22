@@ -50,7 +50,7 @@
             relationships, partnerships, and key contacts.</p>
         </div>
 
-        <div class="feature-card">
+        <div v-if="isTourist()" class="feature-card" @click="goToToursForTourist" style="cursor:pointer;">
           <h3>👥 Followers Network</h3>
           <p>Build and manage your follower network with sophisticated tools for engagement, analytics, and community
             building across multiple platforms.</p>
@@ -109,8 +109,16 @@ const isAuthor = () => {
   return localStorage.getItem('userRole') === 'Guide';
 }
 
+const isTourist = () => {
+  return localStorage.getItem('userRole') === 'Tourist';
+}
+
 const goToTours = () => {
   window.location.href = '/tours';
+}
+
+const goToToursForTourist = () => {
+  window.location.href = '/tours-for-tourist';
 }
 
 </script>

@@ -11,6 +11,9 @@ using tours_service.src.Tours.Application.Features.CreateCheckpoint;
 using tours_service.src.Tours.Application.Features.GetAllCheckpoints;
 using tours_service.src.Tours.Application.Features.UpdateCheckpoint;
 using tours_service.src.Tours.Application.Features.DeleteCheckpoint;
+using tours_service.src.Tours.Application.Features.UpdateTour;
+using tours_service.src.Tours.Application.Features.ArchiveTour;
+using tours_service.src.Tours.Application.Features.PublishTour;
 
 namespace tours_service.src.Tours.API.Controllers;
 
@@ -27,10 +30,18 @@ public class ToursController(IMediator _mediator) : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAllAuthor()
     {
         var result = await _mediator.Send(new GetAllToursQuery(this.GetUser()));
         return CreateResponse(result);
+    }
+
+    [HttpPut]
+    [Route("update/{tourId}")]
+    public async Task<IActionResult> UpdateTour(long tourId, [FromBody] UpdatedTourDTO updatedTourDTO)
+    {
+        var result = await _mediator.Send(new UpdateTourCommand(this.GetUser(), tourId, updatedTourDTO));
+        return Ok(result);
     }
 
     [HttpPost]
@@ -70,6 +81,22 @@ public class ToursController(IMediator _mediator) : BaseController
     public async Task<IActionResult> DeleteCheckpoint(long checkpointId)
     {
         var result = await _mediator.Send(new DeleteCheckpointCommand(this.GetUser(), checkpointId));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("archive/{tourId}")]
+    public async Task<IActionResult> ArchiveTour(long tourId)
+    {
+        var result = await _mediator.Send(new ArchiveTourCommand(this.GetUser(), tourId));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("publish/{tourId}/{price}")]
+    public async Task<IActionResult> PublishTour(long tourId, decimal price)
+    {
+        var result = await _mediator.Send(new PublishTourCommand(this.GetUser(), tourId, price));
         return CreateResponse(result);
     }
 }
