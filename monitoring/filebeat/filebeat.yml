@@ -22,3 +22,11 @@ logging.files:
   name: filebeat
   keepfiles: 7
   permissions: 0644
+
+# Disable strict permission checking (needed for Windows)
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+strict.perms: false

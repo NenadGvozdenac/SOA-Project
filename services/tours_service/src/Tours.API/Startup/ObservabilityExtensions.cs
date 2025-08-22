@@ -4,6 +4,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Prometheus;
+using Serilog;
+using Serilog.Sinks.Elasticsearch;
 
 namespace tours_service.src.Tours.API.Startup;
 
@@ -13,11 +15,27 @@ public static class ObservabilityExtensions
     {
         var serviceName = "tours-service";
         
-        // Configure basic logging
+        // Configure Serilog for structured logging to Elasticsearch
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Service", serviceName)
+            .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production")
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{Service}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+            {
+                IndexFormat = "logstash-soa-project-{0:yyyy.MM.dd}",
+                AutoRegisterTemplate = true,
+                AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
+                TypeName = null,
+                BatchAction = ElasticOpType.Index
+            })
+            .CreateLogger();
+
         services.AddLogging(builder =>
         {
-            builder.AddConsole();
-            builder.AddDebug();
+            builder.ClearProviders();
+            builder.AddSerilog();
         });
 
         // Configure OpenTelemetry tracing and metrics

@@ -3,6 +3,7 @@ package routes
 import (
 	"soa-project/stakeholders-service/internal/app/handlers"
 	"soa-project/stakeholders-service/internal/app/middleware"
+	"soa-project/stakeholders-service/internal/app/utils/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -24,7 +25,17 @@ func setupPublicRoutes(api *gin.RouterGroup) {
 	api.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	api.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy"})
+		clientIP := c.ClientIP()
+		logger.InfoWithFields("Stakeholders service health check requested", map[string]interface{}{
+			"ClientIP": clientIP,
+		})
+
+		response := gin.H{"status": "healthy"}
+		logger.InfoWithFields("Stakeholders service health check completed successfully", map[string]interface{}{
+			"Status": "healthy",
+		})
+
+		c.JSON(200, response)
 	})
 
 	api.POST("/register", handlers.Register)
