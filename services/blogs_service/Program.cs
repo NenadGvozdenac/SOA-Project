@@ -14,10 +14,13 @@ const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
 builder.Services.ConfigureAuth();
 builder.Services.ConfigureApplication();
+builder.Services.AddObservability(builder.Configuration);
 
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
 var app = builder.Build();
+
+app.UseObservability();
 
 if (app.Environment.IsDevelopment())
 {

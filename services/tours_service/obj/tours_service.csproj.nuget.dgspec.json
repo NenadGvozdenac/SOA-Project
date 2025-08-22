@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\srdja\\Desktop\\SOA projekat final\\SOA-Project\\services\\tours_service\\tours_service.csproj": {}
+    "C:\\Users\\matri\\OneDrive\\Desktop\\SOA-Project\\services\\tours_service\\tours_service.csproj": {}
   },
   "projects": {
-    "C:\\Users\\srdja\\Desktop\\SOA projekat final\\SOA-Project\\services\\tours_service\\tours_service.csproj": {
+    "C:\\Users\\matri\\OneDrive\\Desktop\\SOA-Project\\services\\tours_service\\tours_service.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\srdja\\Desktop\\SOA projekat final\\SOA-Project\\services\\tours_service\\tours_service.csproj",
+        "projectUniqueName": "C:\\Users\\matri\\OneDrive\\Desktop\\SOA-Project\\services\\tours_service\\tours_service.csproj",
         "projectName": "tours_service",
-        "projectPath": "C:\\Users\\srdja\\Desktop\\SOA projekat final\\SOA-Project\\services\\tours_service\\tours_service.csproj",
-        "packagesPath": "C:\\Users\\srdja\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\srdja\\Desktop\\SOA projekat final\\SOA-Project\\services\\tours_service\\obj\\",
+        "projectPath": "C:\\Users\\matri\\OneDrive\\Desktop\\SOA-Project\\services\\tours_service\\tours_service.csproj",
+        "packagesPath": "C:\\Users\\matri\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\matri\\OneDrive\\Desktop\\SOA-Project\\services\\tours_service\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\srdja\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\matri\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -43,8 +39,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -74,9 +69,69 @@
               "target": "Package",
               "version": "[7.0.4, )"
             },
+            "OpenTelemetry": {
+              "target": "Package",
+              "version": "[1.7.0, )"
+            },
+            "OpenTelemetry.Exporter.Jaeger": {
+              "target": "Package",
+              "version": "[1.5.1, )"
+            },
+            "OpenTelemetry.Exporter.Prometheus.AspNetCore": {
+              "target": "Package",
+              "version": "[1.7.0-rc.1, )"
+            },
+            "OpenTelemetry.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[1.7.0, )"
+            },
+            "OpenTelemetry.Instrumentation.AspNetCore": {
+              "target": "Package",
+              "version": "[1.7.1, )"
+            },
+            "OpenTelemetry.Instrumentation.Http": {
+              "target": "Package",
+              "version": "[1.7.1, )"
+            },
+            "OpenTelemetry.Instrumentation.Process": {
+              "target": "Package",
+              "version": "[0.5.0-beta.4, )"
+            },
+            "OpenTelemetry.Instrumentation.Runtime": {
+              "target": "Package",
+              "version": "[1.7.0, )"
+            },
+            "OpenTelemetry.Instrumentation.SqlClient": {
+              "target": "Package",
+              "version": "[1.7.0-beta.1, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Serilog.Enrichers.Environment": {
+              "target": "Package",
+              "version": "[3.0.1, )"
+            },
+            "Serilog.Enrichers.Process": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Serilog.Enrichers.Thread": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
+            "Serilog.Sinks.Elasticsearch": {
+              "target": "Package",
+              "version": "[10.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.5.0, )"
+            },
+            "prometheus-net.AspNetCore": {
+              "target": "Package",
+              "version": "[8.2.1, )"
             }
           },
           "imports": [
@@ -98,7 +153,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

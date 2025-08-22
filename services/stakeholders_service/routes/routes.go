@@ -5,13 +5,14 @@ import (
 	"soa-project/stakeholders-service/internal/app/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func SetupRoutes(router *gin.Engine) {
 	// Define the main API group with the prefix "/api"
 	api := router.Group("/api")
 
-	// Setup public routes
+	// Setup public routes (includes metrics)
 	setupPublicRoutes(api)
 
 	// Setup protected routes
@@ -19,6 +20,9 @@ func SetupRoutes(router *gin.Engine) {
 }
 
 func setupPublicRoutes(api *gin.RouterGroup) {
+	// Add metrics endpoint for Prometheus to scrape
+	api.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "healthy"})
 	})

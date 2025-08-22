@@ -15,6 +15,7 @@ const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
 builder.Services.ConfigureAuth();
 builder.Services.ConfigureApplication();
+builder.Services.AddObservability(builder.Configuration);
 
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
@@ -25,6 +26,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<tours_service.src.Tours.Infrastructure.Database.ToursContext>();
     db.Database.Migrate();
 }
+
+app.UseObservability();
 
 if (app.Environment.IsDevelopment())
 {
