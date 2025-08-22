@@ -5,6 +5,7 @@ import Register from './components/Register.vue'
 import UsersList from './components/UsersList.vue'
 import AuthorMapCheckpoint from './components/AuthorMapCheckpoint.vue'
 import Tours from './components/Tours.vue'
+import ToursForTourist from './components/ToursForTourist.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -12,7 +13,8 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/users', component: UsersList },
   { path: '/map-checkpoint', component: AuthorMapCheckpoint },
-  { path: '/tours', component: Tours }
+  { path: '/tours', component: Tours },
+  { path: '/tours-for-tourist', component: ToursForTourist }
 ]
 
 const router = createRouter({

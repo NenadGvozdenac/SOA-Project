@@ -13,4 +13,7 @@ public class CreateTourDTO
     public TourStatus Status { get; set; }
     public decimal Price { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime PublishedAt { get; set; }
+    public DateTime ArchivedAt { get; set; }
+    public double LengthKm { get; set; }
 }

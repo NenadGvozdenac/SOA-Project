@@ -34,7 +34,10 @@ namespace tours_service.src.Tours.Application.Features.CreateTour
         Status = tour.Status,
         Price = tour.Price,
         AuthorId = tour.AuthorId,
-        CreatedAt = tour.CreatedAt
+        CreatedAt = tour.CreatedAt,
+        PublishedAt = tour.PublishedAt,
+        ArchivedAt = tour.ArchivedAt,
+        LengthKm = tour.LengthKm
       };
 
       return Result<CreateTourDTO>.Success(dto);
