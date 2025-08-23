@@ -19,7 +19,8 @@ const routes = [
   { path: '/tours-for-tourist', component: ToursForTourist },
   { path: '/shopping-cart', component: ShoppingCart },
   { path: '/tour-reviews', component: TourReviews },
-  { path: '/purchased-tours', component: () => import('./components/PurchasedTours.vue') }
+  { path: '/purchased-tours', component: () => import('./components/PurchasedTours.vue') },
+  { path: '/blogs', component: () => import('./components/Blogs.vue') }
 ]
 
 const router = createRouter({

@@ -102,7 +102,7 @@ onMounted(() => {
 <style scoped>
   .shopping-cart {
     position: fixed;
-    bottom: 40rem;
+    top: 5rem;
     right: 1rem;
     z-index: 1000;
   }
