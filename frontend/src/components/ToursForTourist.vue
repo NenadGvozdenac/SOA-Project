@@ -1,6 +1,7 @@
 <template>
   <div class="tours-tourist-container">
     <h2>Published Tours</h2>
+  <!-- ShoppingCart is now global in App.vue -->
     <div v-if="loading" class="loading">Loading tours...</div>
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="tours.length" class="tours-grid">
@@ -24,6 +25,12 @@
             </div>
           </div>
         </div>
+        <TourReviews :tour-id="tour.id" />
+        <button 
+          v-if="!tour.isArchived && !isTourPurchased(tour.id)" 
+          @click="addToCart(tour)"
+        >Dodaj u korpu</button>
+        <span v-if="isTourPurchased(tour.id)" class="purchased-label">Kupljeno</span>
       </div>
     </div>
     <div v-else-if="!loading && !error" class="no-tours">No published tours found.</div>
@@ -33,6 +40,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+// Use native event for cart open
+import TourReviews from './TourReviews.vue';
 const tours = ref([]);
 const loading = ref(true);
 const error = ref('');
@@ -45,6 +54,57 @@ const difficultyLabels = {
   'Medium': 'Medium',
   'Hard': 'Hard'
 };
+const purchasedTourIds = ref([]);
+
+async function fetchPurchasedTours() {
+  const jwt = localStorage.getItem('token');
+  try {
+    const response = await axios.get('http://localhost:8082/api/tours/gettoursfromcart', {
+      headers: { Authorization: `Bearer ${jwt}` }
+    });
+    purchasedTourIds.value = (response.data.value || []).map(item => item.tourId);
+  } catch {}
+}
+
+function isTourPurchased(tourId) {
+  return purchasedTourIds.value.includes(tourId);
+}
+
+async function addToCart(tour) {
+  const jwt = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
+      console.log('addToCart called with tourId:', tour.id);
+      console.log('Token:', token);
+      try {
+        const response = await axios.post(
+          'http://localhost:8082/api/tours/addtourtocart',
+          {
+            tourId: tour.id,
+            price: tour.price,
+            tourName: tour.name
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        console.log('addToCart response:', response);
+        // Možeš emitovati event ili osvežiti korpu
+      } catch (error) {
+        console.error('Error adding tour to cart:', error);
+        if (error.response) {
+          console.error('Response data:', error.response.data);
+          console.error('Response status:', error.response.status);
+          console.error('Response headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error setting up request:', error.message);
+        }
+      }
+    }
 
 onMounted(async () => {
   try {
@@ -52,9 +112,7 @@ onMounted(async () => {
     const response = await axios.get('http://localhost:8082/api/tours', {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-    // Filtriraj samo objavljene ture
     tours.value = (response.data.value || []).filter(t => t.status === 1 || t.status === 'Published');
-    // Za svaku turu dohvati prvu ključnu tačku
     for (const tour of tours.value) {
       try {
         const cpRes = await axios.get(`http://localhost:8082/api/tours/checkpoints/${tour.id}`, {
@@ -62,12 +120,12 @@ onMounted(async () => {
         });
         const checkpoints = Array.isArray(cpRes.data.value) ? cpRes.data.value : cpRes.data.results || [];
         if (checkpoints.length > 0) {
-          // Sortiraj po CreatedAt ako postoji
           checkpoints.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
           firstCheckpoint.value[tour.id] = checkpoints[0];
         }
       } catch {}
     }
+    await fetchPurchasedTours();
   } catch (err) {
     error.value = 'Failed to load published tours.';
   } finally {
@@ -121,5 +179,10 @@ onMounted(async () => {
   padding: 0.7rem 1rem;
   margin-top: 0.7rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.purchased-label {
+  color: #38a169;
+  font-weight: bold;
+  margin-left: 1rem;
 }
 </style>

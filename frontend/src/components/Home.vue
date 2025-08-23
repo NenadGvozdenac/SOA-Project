@@ -60,6 +60,7 @@
           <h3>📝 Blog Platform</h3>
           <p>Create, publish, and manage engaging blog content with our powerful content management system designed for
             tourism and travel professionals.</p>
+          <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
         </div>
 
         <div class="feature-card">

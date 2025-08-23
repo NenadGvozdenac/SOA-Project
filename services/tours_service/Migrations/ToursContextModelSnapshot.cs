@@ -62,6 +62,57 @@ namespace tours_service.Migrations
                     b.ToTable("Checkpoints", "tours");
                 });
 
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.OrderItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("double precision");
+
+                    b.Property<long>("ShoppingCartId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TourId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShoppingCartId");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("OrderItems", "tours");
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.ShoppingCart", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("TotalPrice")
+                        .HasColumnType("double precision");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ShoppingCarts", "tours");
+                });
+
             modelBuilder.Entity("tours_service.src.Tours.Application.Domain.Tour", b =>
                 {
                     b.Property<long>("Id")
@@ -111,6 +162,34 @@ namespace tours_service.Migrations
                     b.ToTable("Tours", "tours");
                 });
 
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourPurchaseToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenValue")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("TourId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourPurchaseTokens", "tours");
+                });
+
             modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourReview", b =>
                 {
                     b.Property<long>("Id")
@@ -157,6 +236,30 @@ namespace tours_service.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.OrderItem", b =>
+                {
+                    b.HasOne("tours_service.src.Tours.Application.Domain.ShoppingCart", null)
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ShoppingCartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("tours_service.src.Tours.Application.Domain.Tour", null)
+                        .WithMany()
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourPurchaseToken", b =>
+                {
+                    b.HasOne("tours_service.src.Tours.Application.Domain.Tour", null)
+                        .WithMany()
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("tours_service.src.Tours.Application.Domain.TourReview", b =>
                 {
                     b.HasOne("tours_service.src.Tours.Application.Domain.Tour", null)
@@ -164,6 +267,11 @@ namespace tours_service.Migrations
                         .HasForeignKey("TourId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("tours_service.src.Tours.Application.Domain.ShoppingCart", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 #pragma warning restore 612, 618
         }
