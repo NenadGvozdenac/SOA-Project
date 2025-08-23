@@ -2,6 +2,7 @@ using blogs_service.src.Blogs.API.Startup;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.IdentityModel.Logging;
+using Serilog;
 
 IdentityModelEventSource.ShowPII = true;
 
@@ -14,10 +15,16 @@ const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
 builder.Services.ConfigureAuth();
 builder.Services.ConfigureApplication();
+builder.Services.AddObservability(builder.Configuration);
+
+// Use Serilog as the logging provider
+builder.Host.UseSerilog();
 
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
 var app = builder.Build();
+
+app.UseObservability();
 
 if (app.Environment.IsDevelopment())
 {
@@ -41,5 +48,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+Log.Information("Blogs service started successfully");
 
 app.Run();

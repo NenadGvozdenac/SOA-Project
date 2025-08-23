@@ -20,8 +20,16 @@ public static class ApplicationStartup
 
     private static void SetupDatabases(IServiceCollection services)
     {
-        services.AddDbContext<ToursContext>(options => //Host=localhost???
-            options.UseNpgsql("Host=postgres_tours_db;Port=5432;Database=tours_db;Username=postgres;Password=postgres;SslMode=Disable"));
+        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
+        var database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "tours_db";
+        var username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
+        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres";
+        
+        var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Disable";
+        
+        services.AddDbContext<ToursContext>(options =>
+            options.UseNpgsql(connectionString));
 
         services.AddScoped<ICrudRepository<Tour>, CrudDatabaseRepository<Tour, ToursContext>>();
         services.AddScoped<ICrudRepository<TourReview>, CrudDatabaseRepository<TourReview, ToursContext>>();
