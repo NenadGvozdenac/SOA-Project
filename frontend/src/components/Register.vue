@@ -107,6 +107,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '../services/auth_service.js'
+import axios from 'axios'
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -140,7 +141,8 @@ const handleRegister = async () => {
   try {
     isLoading.value = true
     
-    await AuthService.register(
+    console.log('Zapoceta registracija')
+    const registerResponse = await AuthService.register(
       form.name,
       form.surname,
       form.email,
@@ -149,9 +151,33 @@ const handleRegister = async () => {
       form.username,
       parseInt(form.role_id)
     )
-    
-    // Registration successful, redirect to login
-    router.push('/login')
+    console.log('Registracija uspesna:', registerResponse)
+    console.log('Zavrsena registracija')
+    try {
+      // Iskoristi AuthService.decode za JWT token
+      let userId = null;
+      if (registerResponse?.data) {
+        const decoded = AuthService.decode(registerResponse.data.token);
+        userId = decoded?.userID;
+        console.log('UserId iz tokena:', userId);
+      }
+      if (userId) {
+        const cartRes = await axios.post('http://localhost:8082/api/tours/shoppingcart/' + userId, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${registerResponse.data.token}`
+          }
+        })
+        console.log('Shopping cart kreiran:', cartRes)
+      } else {
+        console.error('Nije pronađen userId u tokenu, ne mogu da kreiram korpu!')
+      }
+    } catch (e) {
+      console.error('Greška pri kreiranju shopping cart-a:', e)
+    }
+
+// Registration successful, redirect to login
+await router.push('/login')
   } catch (err) {
     error.value = err.message || 'Registration failed. Please try again.'
   } finally {

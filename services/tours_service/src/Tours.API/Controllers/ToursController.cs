@@ -14,6 +14,13 @@ using tours_service.src.Tours.Application.Features.DeleteCheckpoint;
 using tours_service.src.Tours.Application.Features.UpdateTour;
 using tours_service.src.Tours.Application.Features.ArchiveTour;
 using tours_service.src.Tours.Application.Features.PublishTour;
+using tours_service.src.Tours.Application.Features.CreateShoppingCart;
+using tours_service.src.Tours.Application.Features.AddTourToCart;
+using tours_service.src.Tours.Application.Features.RemoveTourFromCart;
+using tours_service.src.Tours.Application.Features.GetToursFromCart;
+using tours_service.src.Tours.Application.Features.BuyingTours;
+using tours_service.src.Tours.Application.Features.GetTourReviews;
+using tours_service.src.Tours.Application.Features.GetBoughtTours;
 
 namespace tours_service.src.Tours.API.Controllers;
 
@@ -30,7 +37,7 @@ public class ToursController(IMediator _mediator) : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllAuthor()
+    public async Task<IActionResult> GetAll()
     {
         var result = await _mediator.Send(new GetAllToursQuery(this.GetUser()));
         return CreateResponse(result);
@@ -97,6 +104,62 @@ public class ToursController(IMediator _mediator) : BaseController
     public async Task<IActionResult> PublishTour(long tourId, decimal price)
     {
         var result = await _mediator.Send(new PublishTourCommand(this.GetUser(), tourId, price));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("addtourtocart")]
+    public async Task<IActionResult> AddTourToShoppingCart([FromBody] CreatedOrderItemDTO createdOrderItemDTO)
+    {
+        var result = await _mediator.Send(new AddTourToCartCommand(this.GetUser(), createdOrderItemDTO));
+        return CreateResponse(result);
+    }
+
+    [HttpDelete]
+    [Route("deletetourtocart/{orderItemId}")]
+    public async Task<IActionResult> RemoveTourFromShoppingCart(long orderItemId)
+    {
+        var result = await _mediator.Send(new RemoveTourFromCartCommand(this.GetUser(), orderItemId));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("shoppingcart/{userId}")]
+    public async Task<IActionResult> CreateShoppingCart(long userId)
+    {
+        var result = await _mediator.Send(new CreateShoppingCartCommand(userId));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("buytours")]
+    public async Task<IActionResult> BuyTours([FromBody] List<OrderItemFromCartDTO> orderItemFromCartDTOs)
+    {
+        var result = await _mediator.Send(new BuyToursCommand(this.GetUser(), orderItemFromCartDTOs));
+        return CreateResponse(result);
+    }
+
+    [HttpGet]
+    [Route("gettoursfromcart")]
+    public async Task<IActionResult> GetToursFromCart()
+    {
+        var result = await _mediator.Send(new GetToursFromCartQuery(this.GetUser()));
+        return CreateResponse(result);
+    }
+
+    [HttpGet]
+    [Route("tourreviews/{tourId}")]
+    public async Task<IActionResult> GetTourReviews(long tourId)
+    {
+        var result = await _mediator.Send(new GetTourReviewsQuery(this.GetUser(), tourId));
+        return CreateResponse(result);
+    }
+
+    [HttpGet]
+    [Route("boughttours")]
+    public async Task<IActionResult> GetBoughtTours()
+    {
+        var result = await _mediator.Send(new GetBoughtToursQuery(this.GetUser()));
         return CreateResponse(result);
     }
 }

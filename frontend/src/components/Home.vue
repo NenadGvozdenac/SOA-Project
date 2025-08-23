@@ -45,39 +45,28 @@
     <section class="features">
       <div class="container">
         <div v-if="isAuthor()" class="feature-card" @click="goToTours" style="cursor:pointer;">
-          <h3>🏢 Stakeholder Management</h3>
-          <p>Comprehensive stakeholder management system with advanced features for tracking and managing business
-            relationships, partnerships, and key contacts.</p>
+          <h3>🗺️ Tour Management</h3>
+          <p>Create, edit and publish your tours with advanced checkpoint mapping, route calculation, and pricing. 
+            Manage your entire tour catalog with interactive maps and real-time updates.</p>
         </div>
 
         <div v-if="isTourist()" class="feature-card" @click="goToToursForTourist" style="cursor:pointer;">
-          <h3>👥 Followers Network</h3>
-          <p>Build and manage your follower network with sophisticated tools for engagement, analytics, and community
-            building across multiple platforms.</p>
+          <h3>🌍 Explore Tours</h3>
+          <p>Discover amazing published tours from verified guides. Browse destinations, read reviews, and book your 
+            next adventure with detailed route maps and pricing information.</p>
         </div>
 
-        <div class="feature-card">
-          <h3>📝 Blog Platform</h3>
-          <p>Create, publish, and manage engaging blog content with our powerful content management system designed for
-            tourism and travel professionals.</p>
+        <div class="feature-card" v-if="isTourist()" @click="goToShoppingCart" style="cursor:pointer;">
+          <h3>� Shopping Cart</h3>
+          <p>Review your selected tours, manage your bookings, and complete your purchases securely. 
+            Track your tour reservations and payment history.</p>
+          <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
         </div>
 
-        <div class="feature-card">
-          <h3>🌍 Tourism Services</h3>
-          <p>Complete tourism management solution with booking systems, itinerary planning, destination management, and
-            customer experience optimization.</p>
-        </div>
-
-        <div class="feature-card">
-          <h3>📊 Analytics Dashboard</h3>
-          <p>Real-time analytics and insights to track performance, engagement metrics, and business intelligence across
-            all your tourism operations.</p>
-        </div>
-
-        <div class="feature-card">
-          <h3>🔒 Enterprise Security</h3>
-          <p>Bank-level security with end-to-end encryption, multi-factor authentication, and compliance with
-            international data protection standards.</p>
+        <div class="feature-card" @click="goToBlogs" style="cursor:pointer;">
+          <h3>� Travel Blogs</h3>
+          <p>Share your travel experiences and read inspiring stories from fellow travelers. Create engaging blog 
+            content about your adventures and discover new destinations.</p>
         </div>
       </div>
     </section>
@@ -119,6 +108,14 @@ const goToTours = () => {
 
 const goToToursForTourist = () => {
   window.location.href = '/tours-for-tourist';
+}
+
+const goToFollowers = () => {
+  window.location.href = '/followers';
+}
+
+const goToBlogs = () => {
+  window.location.href = '/blogs';
 }
 
 </script>

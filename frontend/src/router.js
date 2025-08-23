@@ -6,6 +6,8 @@ import UsersList from './components/UsersList.vue'
 import AuthorMapCheckpoint from './components/AuthorMapCheckpoint.vue'
 import Tours from './components/Tours.vue'
 import ToursForTourist from './components/ToursForTourist.vue'
+import ShoppingCart from './components/ShoppingCart.vue'
+import TourReviews from './components/TourReviews.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -14,7 +16,11 @@ const routes = [
   { path: '/users', component: UsersList },
   { path: '/map-checkpoint', component: AuthorMapCheckpoint },
   { path: '/tours', component: Tours },
-  { path: '/tours-for-tourist', component: ToursForTourist }
+  { path: '/tours-for-tourist', component: ToursForTourist },
+  { path: '/shopping-cart', component: ShoppingCart },
+  { path: '/tour-reviews', component: TourReviews },
+  { path: '/purchased-tours', component: () => import('./components/PurchasedTours.vue') },
+  { path: '/blogs', component: () => import('./components/Blogs.vue') }
 ]
 
 const router = createRouter({
