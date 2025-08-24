@@ -5,6 +5,7 @@ namespace followings_service.src.Followings.BuildingBlocks.Infrastructure.Stakeh
 public interface IStakeholdersServiceClient
 {
     Task<List<UserDetailsDTO>> GetUsersByIdsAsync(List<string> userIds);
+    Task<List<UserDetailsDTO>> GetAllUsersAsync();
 }
 
 public record UserDetailsDTO(

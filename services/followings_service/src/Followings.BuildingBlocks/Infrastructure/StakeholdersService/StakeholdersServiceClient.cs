@@ -62,4 +62,42 @@ public class StakeholdersServiceClient : IStakeholdersServiceClient
             return new List<UserDetailsDTO>();
         }
     }
+
+    public async Task<List<UserDetailsDTO>> GetAllUsersAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Fetching all users from stakeholders service");
+            
+            var response = await _httpClient.GetAsync($"{_baseUrl}/api/users/public");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResponse = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Failed to fetch all users from stakeholders service. Status: {StatusCode}, Response: {Response}", 
+                    response.StatusCode, errorResponse);
+                return new List<UserDetailsDTO>();
+            }
+            
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Raw response from stakeholders service: {Response}", responseContent);
+            
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<UserDetailsDTO>>>(responseContent, jsonOptions);
+            var users = apiResponse?.Data ?? new List<UserDetailsDTO>();
+            
+            _logger.LogInformation("Successfully fetched {UserCount} users from stakeholders service", users.Count);
+            return users;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching all users from stakeholders service");
+            return new List<UserDetailsDTO>();
+        }
+    }
 }

@@ -43,6 +43,9 @@ func setupPublicRoutes(api *gin.RouterGroup) {
 
 	// Batch endpoint to get user details by IDs, used by other services
 	api.POST("/users/batch", handlers.GetUsersByIds)
+
+	// Public endpoint to get all users for following purposes
+	api.GET("/users/public", handlers.GetAllUsersPublic)
 }
 
 func setupProtectedRoutes(api *gin.RouterGroup) {

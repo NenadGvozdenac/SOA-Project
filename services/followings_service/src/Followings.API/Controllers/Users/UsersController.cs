@@ -1,6 +1,8 @@
 using followings_service.src.Followings.Application.Features.Users.CreateUser;
+using followings_service.src.Followings.Application.Features.Users.GetAllUsers;
 using followings_service.src.Followings.BuildingBlocks.Core.Domain;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace followings_service.src.Followings.API.Controllers.Users;
@@ -18,6 +20,21 @@ public class UsersController(IMediator mediator) : BaseController
         if (result.IsSuccess)
         {
             return Ok(new { userId = result.Value });
+        }
+
+        return BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("all")]
+    [Authorize]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var query = new GetAllUsersQuery();
+        var result = await mediator.Send(query);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
         }
 
         return BadRequest(new { error = result.Error });

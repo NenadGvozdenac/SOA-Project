@@ -31,6 +31,31 @@ func GetAllUsers(c *gin.Context) {
 	utils.CreateGinResponse(c, "Users retrieved successfully", http.StatusOK, users)
 }
 
+func GetAllUsersPublic(c *gin.Context) {
+	// Get all users from the database
+	users, err := repositories.NewUserRepository().GetAll()
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to retrieve users", http.StatusInternalServerError, nil)
+		return
+	}
+
+	// Convert to public DTOs with limited information
+	var publicUsers []dtos.UserDetailsDTO
+	for _, user := range *users {
+		publicUser := dtos.UserDetailsDTO{
+			Id:             strconv.FormatUint(uint64(user.ID), 10),
+			Username:       user.Username,
+			Name:           user.Name + " " + user.Surname,
+			Email:          user.Email,
+			ProfilePicture: nil, // Assuming no profile picture field in current model
+		}
+		publicUsers = append(publicUsers, publicUser)
+	}
+
+	utils.CreateGinResponse(c, "Users retrieved successfully", http.StatusOK, publicUsers)
+}
+
 // UpdateUser ažurira podatke korisnika po ID-u
 func UpdateUser(c *gin.Context) {
 	idStr := c.Param("id")
