@@ -1,23 +1,27 @@
 <template>
-  <div class="blogs-container">
-    <div class="header">
-      <h1>📝 Kreiranje Bloga</h1>
-      <p class="subtitle">Podelite svoje putničke doživljaje sa svetom</p>
-    </div>
+  <div>
+    <!-- Navigation -->
+    <Navbar />
+
+    <div class="blogs-container">
+      <div class="header">
+        <h1>📝 Blog Creation</h1>
+        <p class="subtitle">Share your travel experiences with the world</p>
+      </div>
 
     <!-- Authentication Required Message -->
     <div v-if="!isAuthenticated" class="auth-required">
       <div class="auth-icon">🔒</div>
-      <h2>Potrebna je prijava</h2>
-      <p>Da biste kreirali blog, morate biti ulogovani na platformu.</p>
+      <h2>Login Required</h2>
+      <p>To create a blog, you must be logged in to the platform.</p>
       <div class="auth-actions">
         <router-link to="/login" class="btn btn-primary">
           <i class="icon">🔑</i>
-          Prijavite se
+          Sign In
         </router-link>
         <router-link to="/register" class="btn btn-secondary">
           <i class="icon">👤</i>
-          Registrujte se
+          Register
         </router-link>
       </div>
     </div>
@@ -27,156 +31,128 @@
       <div class="create-blog-section">
         <div class="user-info">
           <div class="user-welcome">
-            <span class="welcome-text">Dobrodošli, <strong>{{ userInfo?.userName || userInfo?.userEmail }}</strong>!</span>
+            <span class="welcome-text">Welcome, <strong>{{ userInfo?.userName || userInfo?.userEmail
+                }}</strong>!</span>
             <span class="user-role">{{ getRoleDisplayName(userInfo?.userRole) }}</span>
           </div>
         </div>
 
         <form @submit.prevent="createBlog" class="blog-form">
-        <!-- Title Input -->
-        <div class="form-group">
-          <label for="title" class="form-label">
-            <i class="icon">📝</i>
-            Naslov bloga *
-          </label>
-          <input
-            type="text"
-            id="title"
-            v-model="blogForm.title"
-            :class="['form-input', { 'error': errors.title }]"
-            placeholder="Unesite naslov vašeg bloga..."
-            maxlength="200"
-            @input="clearError('title')"
-          />
-          <div class="char-count">{{ blogForm.title.length }}/200</div>
-          <div v-if="errors.title" class="error-message">{{ errors.title }}</div>
-        </div>
-
-        <!-- Description/Content Input -->
-        <div class="form-group">
-          <label for="description" class="form-label">
-            <i class="icon">📄</i>
-            Sadržaj bloga (Markdown podržan) *
-          </label>
-          <div class="markdown-editor">
-            <div class="editor-toolbar">
-              <button type="button" @click="insertMarkdown('**', '**')" class="toolbar-btn" title="Bold">
-                <strong>B</strong>
-              </button>
-              <button type="button" @click="insertMarkdown('*', '*')" class="toolbar-btn" title="Italic">
-                <em>I</em>
-              </button>
-              <button type="button" @click="insertMarkdown('# ', '')" class="toolbar-btn" title="Heading">
-                H1
-              </button>
-              <button type="button" @click="insertMarkdown('- ', '')" class="toolbar-btn" title="List">
-                •
-              </button>
-              <button type="button" @click="insertMarkdown('[link text](url)', '')" class="toolbar-btn" title="Link">
-                🔗
-              </button>
-            </div>
-            <textarea
-              id="description"
-              v-model="blogForm.descriptionMarkdown"
-              :class="['form-textarea', { 'error': errors.descriptionMarkdown }]"
-              placeholder="Napišite sadržaj vašeg bloga ovde... 
-
-Možete koristiti Markdown formatiranje:
-- **bold tekst** za podebljan tekst
-- *italic tekst* za kurziv
-- # Naslov za veliki naslov
-- ## Podnaslov za manji naslov
-- [link tekst](URL) za linkove
-- ![alt tekst](URL slike) za slike"
-              rows="12"
-              maxlength="10000"
-              @input="clearError('descriptionMarkdown')"
-            ></textarea>
+          <!-- Title Input -->
+          <div class="form-group">
+            <label for="title" class="form-label">
+              <i class="icon">📝</i>
+              Blog Title *
+            </label>
+            <input type="text" id="title" v-model="blogForm.title" :class="['form-input', { 'error': errors.title }]"
+              placeholder="Enter your blog title..." maxlength="200" @input="clearError('title')" />
+            <div class="char-count">{{ blogForm.title.length }}/200</div>
+            <div v-if="errors.title" class="error-message">{{ errors.title }}</div>
           </div>
-          <div class="char-count">{{ blogForm.descriptionMarkdown.length }}/10000</div>
-          <div v-if="errors.descriptionMarkdown" class="error-message">{{ errors.descriptionMarkdown }}</div>
-        </div>
 
-        <!-- Image Upload -->
-        <div class="form-group">
-          <label for="image" class="form-label">
-            <i class="icon">🖼️</i>
-            Slika bloga (opciono)
-          </label>
-          <div class="image-upload-area">
-            <input
-              type="file"
-              id="image"
-              ref="imageInput"
-              @change="handleImageChange"
-              accept="image/*"
-              class="file-input"
-            />
-            <div v-if="!imagePreview" class="upload-placeholder" @click="$refs.imageInput.click()">
-              <div class="upload-icon">📷</div>
-              <p>Kliknite da izaberete sliku</p>
-              <p class="upload-hint">PNG, JPG, GIF do 5MB</p>
+          <!-- Description/Content Input -->
+          <div class="form-group">
+            <label for="description" class="form-label">
+              <i class="icon">📄</i>
+              Blog Content (Markdown supported) *
+            </label>
+            <div class="markdown-editor">
+              <div class="editor-toolbar">
+                <button type="button" @click="insertMarkdown('**', '**')" class="toolbar-btn" title="Bold">
+                  <strong>B</strong>
+                </button>
+                <button type="button" @click="insertMarkdown('*', '*')" class="toolbar-btn" title="Italic">
+                  <em>I</em>
+                </button>
+                <button type="button" @click="insertMarkdown('# ', '')" class="toolbar-btn" title="Heading">
+                  H1
+                </button>
+                <button type="button" @click="insertMarkdown('- ', '')" class="toolbar-btn" title="List">
+                  •
+                </button>
+                <button type="button" @click="insertMarkdown('[link text](url)', '')" class="toolbar-btn" title="Link">
+                  🔗
+                </button>
+              </div>
+              <textarea id="description" v-model="blogForm.descriptionMarkdown"
+                :class="['form-textarea', { 'error': errors.descriptionMarkdown }]"
+                placeholder="Write your blog content here..." rows="12" maxlength="10000"
+                @input="clearError('descriptionMarkdown')"></textarea>
             </div>
-            <div v-if="imagePreview" class="image-preview">
-              <img :src="imagePreview" alt="Blog slika" class="preview-img" />
-              <button type="button" @click="removeImage" class="remove-image-btn">
-                ✕ Ukloni sliku
-              </button>
-            </div>
+            <div class="char-count">{{ blogForm.descriptionMarkdown.length }}/10000</div>
+            <div v-if="errors.descriptionMarkdown" class="error-message">{{ errors.descriptionMarkdown }}</div>
           </div>
-          <div v-if="errors.image" class="error-message">{{ errors.image }}</div>
-        </div>
 
-        <!-- Form Actions -->
-        <div class="form-actions">
-          <button
-            type="button"
-            @click="resetForm"
-            class="btn btn-secondary"
-            :disabled="isSubmitting"
-          >
-            <i class="icon">🔄</i>
-            Resetuj
-          </button>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            :disabled="isSubmitting || !isFormValid"
-          >
-            <div v-if="isSubmitting" class="loading-spinner"></div>
-            <i v-else class="icon">✨</i>
-            {{ isSubmitting ? 'Kreiram...' : 'Kreiraj Blog' }}
-          </button>
-        </div>
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label for="image" class="form-label">
+              <i class="icon">🖼️</i>
+              Blog Image (optional)
+            </label>
+            <div class="image-upload-area">
+              <input type="file" id="image" ref="imageInput" @change="handleImageChange" accept="image/*"
+                class="file-input" />
+              <div v-if="!imagePreview" class="upload-placeholder" @click="$refs.imageInput.click()">
+                <div class="upload-icon">📷</div>
+                <p>Click to select an image</p>
+                <p class="upload-hint">PNG, JPG, GIF up to 5MB</p>
+              </div>
+              <div v-if="imagePreview" class="image-preview">
+                <img :src="imagePreview" alt="Blog image" class="preview-img" />
+                <button type="button" @click="removeImage" class="remove-image-btn">
+                  ✕ Remove image
+                </button>
+              </div>
+            </div>
+            <div v-if="errors.image" class="error-message">{{ errors.image }}</div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" @click="resetForm" class="btn btn-secondary" :disabled="isSubmitting">
+              <i class="icon">🔄</i>
+              Reset
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting || !isFormValid">
+              <div v-if="isSubmitting" class="loading-spinner"></div>
+              <i v-else class="icon">✨</i>
+              {{ isSubmitting ? 'Creating...' : 'Create Blog' }}
+            </button>
+          </div>
         </form>
       </div>
 
       <!-- Preview Section -->
       <div v-if="blogForm.title || blogForm.descriptionMarkdown" class="preview-section">
-        <h2 class="preview-title">👀 Pregled bloga</h2>
+        <h2 class="preview-title">👀 Blog Preview</h2>
         <div class="blog-preview">
           <div class="preview-header">
-            <h3 class="preview-blog-title">{{ blogForm.title || 'Naslov bloga' }}</h3>
+            <h3 class="preview-blog-title">{{ blogForm.title || 'Blog Title' }}</h3>
             <div class="preview-meta">
               <span class="preview-author">By: {{ userInfo?.userName || userInfo?.userEmail }}</span>
               <span class="preview-date">{{ getCurrentDate() }}</span>
             </div>
           </div>
           <div v-if="imagePreview" class="preview-image">
-            <img :src="imagePreview" alt="Blog slika" />
+            <img :src="imagePreview" alt="Blog image" />
           </div>
           <div class="preview-content" v-html="getMarkdownPreview()"></div>
         </div>
       </div>
     </template>
+    </div>
   </div>
-</template><script>
+</template>
+<script>
 import { BlogsService } from '../services/blogs_service.js';
 import { AuthService } from '../services/auth_service.js';
+import Navbar from './Navbar.vue';
 
 export default {
   name: 'Blogs',
+  components: {
+    Navbar
+  },
   data() {
     return {
       blogForm: {
@@ -197,10 +173,10 @@ export default {
   },
   computed: {
     isFormValid() {
-      return this.blogForm.title.trim() !== '' && 
-             this.blogForm.descriptionMarkdown.trim() !== '' &&
-             Object.keys(this.errors).length === 0 &&
-             this.isAuthenticated;
+      return this.blogForm.title.trim() !== '' &&
+        this.blogForm.descriptionMarkdown.trim() !== '' &&
+        Object.keys(this.errors).length === 0 &&
+        this.isAuthenticated;
     }
   },
   methods: {
@@ -225,17 +201,17 @@ export default {
     },
 
     redirectToLogin() {
-      this.$toast?.error?.('Morate biti ulogovani da biste kreirali blog');
+      this.$toast?.error?.('You must be logged in to create a blog');
       this.$router.push('/login');
     },
 
     getRoleDisplayName(role) {
       const roleMap = {
         'Admin': 'Administrator',
-        'Author': 'Autor',
-        'Tourist': 'Turista'
+        'Author': 'Author',
+        'Tourist': 'Tourist'
       };
-      return roleMap[role] || role || 'Korisnik';
+      return roleMap[role] || role || 'User';
     },
     async createBlog() {
       if (!this.validateForm()) {
@@ -245,31 +221,31 @@ export default {
       this.isSubmitting = true;
 
       try {
-        // Konvertuj sliku u base64 ako je izabrana
+        // Convert image to base64 if selected
         if (this.selectedFile) {
           this.blogForm.imageBase64 = await BlogsService.fileToBase64(this.selectedFile);
         }
 
         const response = await BlogsService.createBlog(this.blogForm);
-        
-        this.$toast?.success?.('Blog je uspešno kreiran! 🎉');
+
+        this.$toast?.success?.('Blog created successfully! 🎉');
         this.resetForm();
-        
+
         // Opciono: preusmeri na listu blogova ili početnu stranu
         // this.$router.push('/blogs-list');
-        
+
       } catch (error) {
         console.error('Error creating blog:', error);
-        let errorMessage = 'Greška pri kreiranju bloga';
-        
+        let errorMessage = 'Error creating blog';
+
         if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response?.status === 401) {
-          errorMessage = 'Morate biti ulogovani da biste kreirali blog';
+          errorMessage = 'You must be logged in to create a blog';
         } else if (error.response?.status === 400) {
-          errorMessage = 'Neispravni podaci za blog';
+          errorMessage = 'Invalid blog data';
         }
-        
+
         this.$toast?.error?.(errorMessage);
       } finally {
         this.isSubmitting = false;
@@ -278,29 +254,29 @@ export default {
 
     validateForm() {
       this.errors = {};
-      
+
       const validationErrors = BlogsService.validateBlogData(this.blogForm);
-      
+
       if (validationErrors.length > 0) {
         validationErrors.forEach(error => {
-          if (error.includes('Naslov')) {
+          if (error.includes('Title')) {
             this.errors.title = error;
-          } else if (error.includes('Opis')) {
+          } else if (error.includes('Description')) {
             this.errors.descriptionMarkdown = error;
           }
         });
       }
 
-      // Validacija slike
+      // Image validation
       if (this.selectedFile) {
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (this.selectedFile.size > maxSize) {
-          this.errors.image = 'Slika ne može biti veća od 5MB';
+          this.errors.image = 'Image cannot be larger than 5MB';
         }
-        
+
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(this.selectedFile.type)) {
-          this.errors.image = 'Dozvoljen je samo JPEG, PNG, GIF ili WebP format';
+          this.errors.image = 'Only JPEG, PNG, GIF or WebP format allowed';
         }
       }
 
@@ -321,14 +297,14 @@ export default {
       }
 
       this.selectedFile = file;
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         this.imagePreview = e.target.result;
       };
       reader.readAsDataURL(file);
-      
+
       this.clearError('image');
     },
 
@@ -355,13 +331,13 @@ export default {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const selectedText = textarea.value.substring(start, end);
-      
+
       const newText = before + selectedText + after;
       const beforeText = textarea.value.substring(0, start);
       const afterText = textarea.value.substring(end);
-      
+
       this.blogForm.descriptionMarkdown = beforeText + newText + afterText;
-      
+
       // Set cursor position
       this.$nextTick(() => {
         textarea.focus();
@@ -381,9 +357,9 @@ export default {
 
     getMarkdownPreview() {
       if (!this.blogForm.descriptionMarkdown) {
-        return '<p class="empty-content">Sadržaj bloga će se prikazati ovde...</p>';
+        return '<p class="empty-content">Blog content will be displayed here...</p>';
       }
-      
+
       // Simple markdown to HTML conversion
       return this.blogForm.descriptionMarkdown
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -403,7 +379,7 @@ export default {
 .blogs-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 80px 20px 20px 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
@@ -579,6 +555,7 @@ export default {
 }
 
 .form-textarea {
+  width: 100%;
   padding: 16px;
   border: none;
   font-size: 16px;
@@ -586,6 +563,7 @@ export default {
   resize: vertical;
   min-height: 200px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
 }
 
 .form-textarea:focus {
@@ -841,7 +819,7 @@ export default {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .preview-section {
     position: static;
   }
@@ -851,20 +829,20 @@ export default {
   .blogs-container {
     padding: 15px;
   }
-  
+
   .create-blog-section,
   .preview-section {
     padding: 20px;
   }
-  
+
   .header h1 {
     font-size: 28px;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .btn {
     justify-content: center;
   }

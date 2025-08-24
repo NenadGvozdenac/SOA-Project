@@ -1,6 +1,8 @@
 <template>
-  <div class="tours-list-container">
-    <h2>All Tours</h2>
+  <div>
+    <Navbar />
+    <div class="tours-list-container">
+      <h2>All Tours</h2>
 
     <div class="add-tour-form">
       <h3>Add New Tour</h3>
@@ -47,6 +49,7 @@
       </div>
     </div>
     <div v-else-if="!loading && !error" class="no-tours">No tours found.</div>
+    </div>
   </div>
 </template>
 
@@ -54,6 +57,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { TOURS_URL } from '../services/const_service.js';
+import Navbar from './Navbar.vue';
 import { useRouter } from 'vue-router';
 
 const tours = ref([]);
@@ -158,7 +162,7 @@ onMounted(fetchTours);
 <style scoped>
 .tours-list-container {
   max-width: 900px;
-  margin: 2rem auto;
+  margin: 6rem auto 2rem auto;
   padding: 2rem;
   background: #fff;
   border-radius: 12px;
