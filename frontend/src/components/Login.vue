@@ -1,7 +1,9 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h2>Welcome Back</h2>
+  <div>
+    <Navbar />
+    <div class="auth-container">
+      <div class="auth-card">
+        <h2>Welcome Back</h2>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="email">Email</label>
@@ -42,14 +44,14 @@
           <router-link to="/">← Back to Home</router-link>
         </p>
       </div>
+      </div>
     </div>
   </div>
-</template>
-
-<script setup>
+</template><script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '../services/auth_service.js'
+import Navbar from './Navbar.vue'
 
 const router = useRouter()
 const isLoading = ref(false)

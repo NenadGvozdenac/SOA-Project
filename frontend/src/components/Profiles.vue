@@ -1,198 +1,155 @@
 <template>
-  <div class="profiles-container">
-    <h1>Korisnici</h1>
-    
-    <!-- Tabs -->
-    <div class="tabs">
-      <button 
-        @click="activeTab = 'allUsers'" 
-        :class="{ active: activeTab === 'allUsers' }"
-        class="tab-button"
-      >
-        Svi korisnici
-      </button>
-      <button 
-        @click="activeTab = 'suggestions'" 
-        :class="{ active: activeTab === 'suggestions' }"
-        class="tab-button"
-      >
-        Predlozi za praćenje
-      </button>
-      <button 
-        @click="activeTab = 'following'" 
-        :class="{ active: activeTab === 'following' }"
-        class="tab-button"
-      >
-        Pratim ({{ followingCount }})
-      </button>
-      <button 
-        @click="activeTab = 'followers'" 
-        :class="{ active: activeTab === 'followers' }"
-        class="tab-button"
-      >
-        Prate me ({{ followersCount }})
-      </button>
-    </div>    <!-- Loading -->
-    <div v-if="loading" class="loading">
-      Učitava...
-    </div>
+  <div>
+    <Navbar />
+    <div class="profiles-container">
+      <h1>Korisnici</h1>
 
-    <!-- Error -->
-    <div v-if="error" class="error">
-      {{ error }}
-    </div>
-
-    <!-- Content based on active tab -->
-    <div v-if="!loading && !error" class="users-grid">
-      <!-- All Users Tab -->
-      <div v-if="activeTab === 'allUsers'">
-        <div v-if="allUsers.length === 0" class="no-data">
-          Nema korisnika u sistemu.
-        </div>
-        <div v-for="user in allUsers" :key="user.id" class="user-card">
-          <div class="user-avatar">
-            <img 
-              v-if="user.profilePicture" 
-              :src="`data:image/png;base64,${user.profilePicture}`" 
-              :alt="user.name"
-              class="avatar-img"
-            />
-            <div v-else class="default-avatar">
-              {{ user.name.charAt(0).toUpperCase() }}
-            </div>
-          </div>
-          <div class="user-info">
-            <h3>{{ user.name }}</h3>
-            <p class="username">@{{ user.username }}</p>
-            <p class="email">{{ user.email }}</p>
-            <p class="role">{{ getRoleDisplayName(user.role) }}</p>
-          </div>
-          <div class="user-actions">
-            <button 
-              v-if="!isCurrentUser(user.id) && !isUserFollowed(user.id)"
-              @click="followUser(user.id)" 
-              :disabled="followingInProgress.has(user.id)"
-              class="follow-btn"
-            >
-              {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
-            </button>
-            <button 
-              v-if="!isCurrentUser(user.id) && isUserFollowed(user.id)"
-              @click="unfollowUser(user.id)" 
-              :disabled="followingInProgress.has(user.id)"
-              class="unfollow-btn"
-            >
-              {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
-            </button>
-            <span v-if="isCurrentUser(user.id)" class="current-user-label">Vi ste</span>
-          </div>
-        </div>
+      <!-- Tabs -->
+      <div class="tabs">
+        <button @click="activeTab = 'allUsers'" :class="{ active: activeTab === 'allUsers' }" class="tab-button">
+          Svi korisnici
+        </button>
+        <button @click="activeTab = 'suggestions'" :class="{ active: activeTab === 'suggestions' }" class="tab-button">
+          Predlozi za praćenje
+        </button>
+        <button @click="activeTab = 'following'" :class="{ active: activeTab === 'following' }" class="tab-button">
+          Pratim ({{ followingCount }})
+        </button>
+        <button @click="activeTab = 'followers'" :class="{ active: activeTab === 'followers' }" class="tab-button">
+          Prate me
+        </button>
+      </div> <!-- Loading -->
+      <div v-if="loading" class="loading">
+        Učitava...
       </div>
 
-      <!-- Suggestions Tab -->
-      <div v-if="activeTab === 'suggestions'">
-        <div v-if="suggestions.length === 0" class="no-data">
-          Nema predloga za praćenje.
-        </div>
-        <div v-for="user in suggestions" :key="user.id" class="user-card">
-          <div class="user-avatar">
-            <img 
-              v-if="user.profilePicture" 
-              :src="`data:image/png;base64,${user.profilePicture}`" 
-              :alt="user.name"
-              class="avatar-img"
-            />
-            <div v-else class="default-avatar">
-              {{ user.name.charAt(0).toUpperCase() }}
-            </div>
-          </div>
-          <div class="user-info">
-            <h3>{{ user.name }}</h3>
-            <p class="username">@{{ user.username }}</p>
-            <p class="email">{{ user.email }}</p>
-          </div>
-          <div class="user-actions">
-            <button 
-              @click="followUser(user.id)" 
-              :disabled="followingInProgress.has(user.id)"
-              class="follow-btn"
-            >
-              {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
-            </button>
-          </div>
-        </div>
+      <!-- Error -->
+      <div v-if="error" class="error">
+        {{ error }}
       </div>
 
-      <!-- Following Tab -->
-      <div v-if="activeTab === 'following'">
-        <div v-if="following.length === 0" class="no-data">
-          Ne pratite nikog.
-        </div>
-        <div v-for="user in following" :key="user.id" class="user-card">
-          <div class="user-avatar">
-            <img 
-              v-if="user.profilePicture" 
-              :src="`data:image/png;base64,${user.profilePicture}`" 
-              :alt="user.name"
-              class="avatar-img"
-            />
-            <div v-else class="default-avatar">
-              {{ user.name.charAt(0).toUpperCase() }}
+      <!-- Content based on active tab -->
+      <div v-if="!loading && !error" class="users-grid">
+        <!-- All Users Tab -->
+        <div v-if="activeTab === 'allUsers'">
+          <div v-if="allUsers.length === 0" class="no-data">
+            Nema korisnika u sistemu.
+          </div>
+          <div v-for="user in allUsers" :key="user.id" class="user-card">
+            <div class="user-avatar">
+              <img v-if="user.profilePicture" :src="`data:image/png;base64,${user.profilePicture}`" :alt="user.name"
+                class="avatar-img" />
+              <div v-else class="default-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+            <div class="user-info">
+              <h3>{{ user.name }}</h3>
+              <p class="username">@{{ user.username }}</p>
+              <p class="email">{{ user.email }}</p>
+            </div>
+            <div class="user-actions">
+              <button v-if="!isCurrentUser(user.id) && !isUserFollowed(user.id)" @click="followUser(user.id)"
+                :disabled="followingInProgress.has(user.id)" class="follow-btn">
+                {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
+              </button>
+              <button v-if="!isCurrentUser(user.id) && isUserFollowed(user.id)" @click="unfollowUser(user.id)"
+                :disabled="followingInProgress.has(user.id)" class="unfollow-btn">
+                {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
+              </button>
+              <span v-if="isCurrentUser(user.id)" class="current-user-label">Vi ste</span>
             </div>
           </div>
-          <div class="user-info">
-            <h3>{{ user.name }}</h3>
-            <p class="username">@{{ user.username }}</p>
-            <p class="email">{{ user.email }}</p>
-          </div>
-          <div class="user-actions">
-            <button 
-              @click="unfollowUser(user.id)" 
-              :disabled="followingInProgress.has(user.id)"
-              class="unfollow-btn"
-            >
-              {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
-            </button>
-          </div>
         </div>
-      </div>
 
-      <!-- Followers Tab -->
-      <div v-if="activeTab === 'followers'">
-        <div v-if="followers.length === 0" class="no-data">
-          Niko vas ne prati.
-        </div>
-        <div v-for="user in followers" :key="user.id" class="user-card">
-          <div class="user-avatar">
-            <img 
-              v-if="user.profilePicture" 
-              :src="`data:image/png;base64,${user.profilePicture}`" 
-              :alt="user.name"
-              class="avatar-img"
-            />
-            <div v-else class="default-avatar">
-              {{ user.name.charAt(0).toUpperCase() }}
+        <!-- Suggestions Tab -->
+        <div v-if="activeTab === 'suggestions'">
+          <div v-if="suggestions.length === 0" class="no-data">
+            Nema predloga za praćenje.
+          </div>
+          <div v-for="user in suggestions" :key="user.id" class="user-card">
+            <div class="user-avatar">
+              <img v-if="user.profilePicture" :src="`data:image/png;base64,${user.profilePicture}`" :alt="user.name"
+                class="avatar-img" />
+              <div v-else class="default-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+            <div class="user-info">
+              <h3>{{ user.name }}</h3>
+              <p class="username">@{{ user.username }}</p>
+              <p class="email">{{ user.email }}</p>
+            </div>
+            <div class="user-actions">
+              <button @click="followUser(user.id)" :disabled="followingInProgress.has(user.id)" class="follow-btn">
+                {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
+              </button>
             </div>
           </div>
-          <div class="user-info">
-            <h3>{{ user.name }}</h3>
-            <p class="username">@{{ user.username }}</p>
-            <p class="email">{{ user.email }}</p>
+        </div>
+
+        <!-- Following Tab -->
+        <div v-if="activeTab === 'following'">
+          <div v-if="following.length === 0" class="no-data">
+            Ne pratite nikog.
           </div>
-          <div class="user-actions">
-            <span class="follower-label">Prati vas</span>
+          <div v-for="user in following" :key="user.id" class="user-card">
+            <div class="user-avatar">
+              <img v-if="user.profilePicture" :src="`data:image/png;base64,${user.profilePicture}`" :alt="user.name"
+                class="avatar-img" />
+              <div v-else class="default-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+            <div class="user-info">
+              <h3>{{ user.name }}</h3>
+              <p class="username">@{{ user.username }}</p>
+              <p class="email">{{ user.email }}</p>
+            </div>
+            <div class="user-actions">
+              <button @click="unfollowUser(user.id)" :disabled="followingInProgress.has(user.id)" class="unfollow-btn">
+                {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Followers Tab -->
+        <div v-if="activeTab === 'followers'">
+          <div v-if="followers.length === 0" class="no-data">
+            Niko vas ne prati.
+          </div>
+          <div v-for="user in followers" :key="user.id" class="user-card">
+            <div class="user-avatar">
+              <img v-if="user.profilePicture" :src="`data:image/png;base64,${user.profilePicture}`" :alt="user.name"
+                class="avatar-img" />
+              <div v-else class="default-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+            <div class="user-info">
+              <h3>{{ user.name }}</h3>
+              <p class="username">@{{ user.username }}</p>
+              <p class="email">{{ user.email }}</p>
+            </div>
+            <div class="user-actions">
+              <span class="follower-label">Prati vas</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script>
 import { FollowingsService } from '../services/followings_service.js';
+import Navbar from './Navbar.vue';
 
 export default {
   name: 'Profiles',
+  components: {
+    Navbar
+  },
   data() {
     return {
       activeTab: 'allUsers',
@@ -227,7 +184,7 @@ export default {
     async loadData() {
       this.loading = true;
       this.error = null;
-      
+
       try {
         if (this.activeTab === 'allUsers') {
           await this.loadAllUsers();
@@ -245,57 +202,42 @@ export default {
         this.loading = false;
       }
     },
-    
+
     async loadAllUsers() {
       const response = await FollowingsService.getAllUsers();
-      console.log('Raw all users response:', response);
-      // /api/users/all returns GetAllUsersResponse with 'data' property
       this.allUsers = response.data || [];
-      console.log('Parsed all users list:', this.allUsers);
     },
-    
+
     async loadSuggestions() {
       const response = await FollowingsService.getFollowSuggestions();
-      console.log('Raw suggestions response:', response);
-      // Handle Result<T> format where data is in 'value' property
       this.suggestions = response.value || response.data || [];
-      console.log('Parsed suggestions list:', this.suggestions);
     },
-    
+
     async loadFollowing() {
       const response = await FollowingsService.getMyFollowings();
-      console.log('Raw following response:', response);
-      // Handle Result<T> format where data is in 'value' property
       this.following = response.value || response.data || [];
-      console.log('Parsed following list:', this.following);
     },
-    
+
     async loadFollowers() {
       const response = await FollowingsService.getMyFollowers();
-      console.log('Raw followers response:', response);
-      // Handle Result<T> format where data is in 'value' property
       this.followers = response.value || response.data || [];
-      console.log('Parsed followers list:', this.followers);
     },
-    
+
     async followUser(userId) {
-      console.log('Following user:', userId);
       this.followingInProgress.add(userId);
-      
+
       try {
         await FollowingsService.followUser(userId);
-        console.log('Follow successful, reloading following list...');
-        
+
         // Reload following list to get updated data
         await this.loadFollowing();
-        console.log('Following list reloaded:', this.following);
-        
+
         // Remove from suggestions if present
         const userIndex = this.suggestions.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
           this.suggestions.splice(userIndex, 1);
         }
-        
+
         this.$toast?.success?.('Uspešno ste zapratili korisnika!');
       } catch (error) {
         console.error('Error following user:', error);
@@ -304,16 +246,15 @@ export default {
         this.followingInProgress.delete(userId);
       }
     },
-    
+
     async unfollowUser(userId) {
       this.followingInProgress.add(userId);
-      
+
       try {
         await FollowingsService.unfollowUser(userId);
-        
-        // Reload following list to get updated data
+
         await this.loadFollowing();
-        
+
         this.$toast?.success?.('Uspešno ste prekinuli praćenje!');
       } catch (error) {
         console.error('Error unfollowing user:', error);
@@ -322,17 +263,16 @@ export default {
         this.followingInProgress.delete(userId);
       }
     },
-    
+
     isCurrentUser(userId) {
       const currentUserId = localStorage.getItem('userID');
       return currentUserId && currentUserId == userId;
     },
-    
+
     isUserFollowed(userId) {
-      console.log('Checking if user is followed:', userId, 'Following list:', this.following.map(u => u.id));
-      return this.following.some(user => user.id == userId); // Use == instead of === for loose comparison
+      return this.following.some(user => user.id == userId);
     },
-    
+
     getRoleDisplayName(role) {
       const roleMap = {
         'Admin': 'Administrator',
@@ -349,7 +289,7 @@ export default {
 .profiles-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 80px 20px 20px 20px;
 }
 
 h1 {
@@ -558,12 +498,12 @@ h1 {
   .users-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .user-card {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .user-info {
     text-align: center;
   }
