@@ -58,6 +58,13 @@
               next adventure with detailed route maps and pricing information.</p>
           </div>
 
+          <div class="feature-card" v-if="isTourist()" style="cursor:pointer;">
+            <h3>🛒 Shopping Cart</h3>
+            <p>Review your selected tours, manage your bookings, and complete your purchases securely. 
+              Track your tour reservations and payment history.</p>
+            <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
+          </div>
+
           <div class="feature-card" @click="goToBlogs" style="cursor:pointer;">
             <h3>📝 Travel Blogs</h3>
             <p>Share your travel experiences and read inspiring stories from fellow travelers. Create engaging blog
@@ -169,6 +176,7 @@ const goToTours = () => {
 const goToToursForTourist = () => {
   window.location.href = '/tours-for-tourist';
 }
+
 const goToBlogs = () => {
   window.location.href = '/blogs';
 }
