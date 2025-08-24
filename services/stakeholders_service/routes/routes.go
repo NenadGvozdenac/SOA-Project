@@ -53,7 +53,7 @@ func setupProtectedRoutes(api *gin.RouterGroup) {
 	protected.Use(middleware.AuthMiddleware())
 
 	protected.GET("/users", handlers.GetAllUsers)
-	// protected.GET("/users/:id", handlers.GetUserById)
+	protected.GET("/users/:id", handlers.GetUserById)
 	// protected.GET("/user", handlers.GetActiveUser)
 	protected.PUT("/users/:id", handlers.UpdateUser)
 

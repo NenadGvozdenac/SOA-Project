@@ -5,12 +5,29 @@
 
     <div class="blogs-container">
       <div class="header">
-        <h1>📝 Blog Creation</h1>
-        <p class="subtitle">Share your travel experiences with the world</p>
+        <h1>📝 Travel Blogs</h1>
+        <p class="subtitle">Share your travel experiences and read stories from fellow travelers</p>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button 
+          @click="activeTab = 'view'" 
+          :class="['tab-btn', { active: activeTab === 'view' }]"
+        >
+          📖 Browse Blogs
+        </button>
+        <button 
+          @click="activeTab = 'create'" 
+          :class="['tab-btn', { active: activeTab === 'create' }]"
+          v-if="isAuthenticated"
+        >
+          ✍️ Create Blog
+        </button>
       </div>
 
     <!-- Authentication Required Message -->
-    <div v-if="!isAuthenticated" class="auth-required">
+    <div v-if="!isAuthenticated && activeTab === 'create'" class="auth-required">
       <div class="auth-icon">🔒</div>
       <h2>Login Required</h2>
       <p>To create a blog, you must be logged in to the platform.</p>
@@ -26,8 +43,108 @@
       </div>
     </div>
 
-    <!-- Blog Creation Form - Only show if authenticated -->
-    <template v-if="isAuthenticated">
+    <!-- Blog List View -->
+    <div v-if="activeTab === 'view'" class="blogs-list-section">
+      <div class="blogs-header">
+        <h2>📚 Latest Blog Posts</h2>
+        <div class="pagination-info" v-if="blogs.length > 0">
+          Showing {{ blogs.length }} blogs
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div v-if="loadingBlogs" class="loading-state">
+        <div class="loading-spinner-large"></div>
+        <p>Loading blogs...</p>
+      </div>
+
+      <!-- Error -->
+      <div v-if="blogsError" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3>Error Loading Blogs</h3>
+        <p>{{ blogsError }}</p>
+        <button @click="loadBlogs" class="btn btn-primary">
+          🔄 Try Again
+        </button>
+      </div>
+
+      <!-- Blogs Grid -->
+      <div v-if="!loadingBlogs && !blogsError" class="blogs-grid">
+        <div v-if="blogs.length === 0" class="no-blogs">
+          <div class="no-blogs-icon">📝</div>
+          <h3>No Blogs Yet</h3>
+          <p>Be the first to share your travel experiences!</p>
+          <button 
+            v-if="isAuthenticated" 
+            @click="activeTab = 'create'" 
+            class="btn btn-primary"
+          >
+            ✍️ Create First Blog
+          </button>
+        </div>
+
+        <article 
+          v-for="blog in blogs" 
+          :key="blog.id" 
+          class="blog-card"
+          @click="viewBlog(blog.id)"
+        >
+          <div v-if="blog.imageBase64" class="blog-image">
+            <img :src="`data:image/jpeg;base64,${blog.imageBase64}`" :alt="blog.title" />
+          </div>
+          <div class="blog-content">
+            <h3 class="blog-title">{{ blog.title }}</h3>
+            <div class="blog-meta">
+              <span class="blog-author">👤 Author ID: {{ blog.userId }}</span>
+              <span class="blog-date">📅 {{ formatDate(blog.createdAt) }}</span>
+            </div>
+            <div class="blog-description">
+              {{ getPlainTextPreview(blog.descriptionMarkdown) }}
+            </div>
+            <div class="blog-actions">
+              <button @click.stop="viewBlog(blog.id)" class="btn btn-outline">
+                📖 Read More
+              </button>
+              <div class="blog-actions-right">
+                <div class="likes-info">
+                  <span class="likes-count">{{ blog.likesCount || 0 }} likes</span>
+                </div>
+                <button 
+                  @click.stop="toggleLike(blog)" 
+                  :class="['btn', blog.isLikedByCurrentUser ? 'btn-liked' : 'btn-like']"
+                  :disabled="likingBlogs.has(blog.id)"
+                >
+                  {{ blog.isLikedByCurrentUser ? '💖' : '❤️' }} 
+                  {{ blog.isLikedByCurrentUser ? 'Unlike' : 'Like' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="blogs.length > 0" class="pagination">
+        <button 
+          @click="loadBlogs(currentPage - 1)" 
+          :disabled="currentPage <= 1 || loadingBlogs"
+          class="btn btn-secondary"
+        >
+          ← Previous
+        </button>
+        <span class="page-info">Page {{ currentPage }}</span>
+        <button 
+          @click="loadBlogs(currentPage + 1)" 
+          :disabled="blogs.length < pageSize || loadingBlogs"
+          class="btn btn-secondary"
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+
+    <!-- Blog Creation Form - Only show if authenticated and create tab is active -->
+    <template v-if="isAuthenticated && activeTab === 'create'">
       <div class="create-blog-section">
         <div class="user-info">
           <div class="user-welcome">
@@ -155,6 +272,9 @@ export default {
   },
   data() {
     return {
+      activeTab: 'view', // 'view' or 'create'
+      
+      // Blog creation form data
       blogForm: {
         title: '',
         descriptionMarkdown: '',
@@ -164,12 +284,23 @@ export default {
       selectedFile: null,
       errors: {},
       isSubmitting: false,
+      
+      // Authentication
       isAuthenticated: false,
-      userInfo: null
+      userInfo: null,
+      
+      // Blog listing data
+      blogs: [],
+      loadingBlogs: false,
+      blogsError: null,
+      currentPage: 1,
+      pageSize: 10,
+      likingBlogs: new Set()
     };
   },
   async mounted() {
     this.checkAuthentication();
+    await this.loadBlogs();
   },
   computed: {
     isFormValid() {
@@ -203,6 +334,91 @@ export default {
     redirectToLogin() {
       this.$toast?.error?.('You must be logged in to create a blog');
       this.$router.push('/login');
+    },
+
+    async loadBlogs(page = 1) {
+      this.loadingBlogs = true;
+      this.blogsError = null;
+      this.currentPage = page;
+
+      try {
+        const response = await BlogsService.getAllBlogs(page, this.pageSize);
+        this.blogs = response || [];
+        console.log('Loaded blogs:', this.blogs);
+      } catch (error) {
+        console.error('Error loading blogs:', error);
+        this.blogsError = error.response?.data?.message || 'Failed to load blogs';
+      } finally {
+        this.loadingBlogs = false;
+      }
+    },
+
+    async viewBlog(blogId) {
+      // Navigate to blog detail page
+      this.$router.push(`/blog/${blogId}`);
+    },
+
+    async toggleLike(blog) {
+      if (!this.isAuthenticated) {
+        this.$toast?.error?.('You must be logged in to like blogs');
+        return;
+      }
+
+      this.likingBlogs.add(blog.id);
+
+      try {
+        if (blog.isLikedByCurrentUser) {
+          // Dislike - uklanjanje lajka
+          await BlogsService.dislikeBlog(blog.id);
+          blog.isLikedByCurrentUser = false;
+          blog.likesCount = Math.max(0, blog.likesCount - 1);
+          this.$toast?.success?.('Like removed! 💔');
+        } else {
+          // Like
+          await BlogsService.likeBlog(blog.id);
+          blog.isLikedByCurrentUser = true;
+          blog.likesCount = blog.likesCount + 1;
+          this.$toast?.success?.('Blog liked! ❤️');
+        }
+      } catch (error) {
+        console.error('Error toggling like:', error);
+        this.$toast?.error?.('Failed to update like status');
+      } finally {
+        this.likingBlogs.delete(blog.id);
+      }
+    },
+
+    formatDate(dateString) {
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('sr-RS', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        return 'Unknown date';
+      }
+    },
+
+    getPlainTextPreview(markdown) {
+      if (!markdown) return 'No content available...';
+      
+      // Remove markdown formatting and limit to 150 characters
+      const plainText = markdown
+        .replace(/[#*_`]/g, '')
+        .replace(/\n/g, ' ')
+        .trim();
+      
+      return plainText.length > 150 
+        ? plainText.substring(0, 150) + '...'
+        : plainText;
+    },
+
+    redirectToLogin() {
+
     },
 
     getRoleDisplayName(role) {
@@ -403,6 +619,322 @@ export default {
   color: #666;
   font-size: 18px;
   margin: 0;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  padding: 0 20px;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+  color: #007bff;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  border-color: #007bff;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Blog List Section */
+.blogs-list-section {
+  grid-column: 1 / -1;
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.blogs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.blogs-header h2 {
+  color: #333;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Loading and Error States */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.loading-spinner-large {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #dc3545;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.error-state h3 {
+  color: #dc3545;
+  margin: 0 0 10px 0;
+  font-size: 20px;
+}
+
+.error-state p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Blogs Grid */
+.blogs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.no-blogs {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 2px dashed #ddd;
+}
+
+.no-blogs-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.no-blogs h3 {
+  color: #333;
+  margin: 0 0 10px 0;
+  font-size: 24px;
+}
+
+.no-blogs p {
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+/* Blog Cards */
+.blog-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #f0f0f0;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+.blog-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.blog-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-image img {
+  transform: scale(1.05);
+}
+
+.blog-content {
+  padding: 20px;
+}
+
+.blog-title {
+  color: #333;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 12px;
+  color: #666;
+}
+
+.blog-author,
+.blog-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.blog-description {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.blog-actions-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.likes-info {
+  display: flex;
+  align-items: center;
+}
+
+.likes-count {
+  font-size: 12px;
+  color: #666;
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background: #007bff;
+  color: white;
+}
+
+.btn-like {
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-like:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-liked {
+  background: #dc3545;
+  color: white;
+  border: 1px solid #dc3545;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-liked:hover:not(:disabled) {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+.btn-like:disabled,
+.btn-liked:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.page-info {
+  color: #666;
+  font-weight: 500;
 }
 
 .auth-required {

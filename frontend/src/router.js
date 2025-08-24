@@ -10,6 +10,7 @@ import ShoppingCart from './components/ShoppingCart.vue'
 import TourReviews from './components/TourReviews.vue'
 import Profiles from './components/Profiles.vue'
 import FollowedBlogs from './components/FollowedBlogs.vue'
+import Profile from './components/Profile.vue'
 
 // Helper function to check if user is authenticated
 function isAuthenticated() {
@@ -32,6 +33,7 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/users', component: UsersList },
   { path: '/profiles', component: Profiles },
+  { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/followed-blogs', component: FollowedBlogs },
   { path: '/map-checkpoint', component: AuthorMapCheckpoint },
   { path: '/tours', component: Tours },
@@ -42,6 +44,11 @@ const routes = [
   { 
     path: '/blogs', 
     component: () => import('./components/Blogs.vue'),
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/blog/:id', 
+    component: () => import('./components/BlogDetail.vue'),
     meta: { requiresAuth: true }
   }
 ]

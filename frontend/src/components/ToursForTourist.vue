@@ -29,8 +29,8 @@
         <button 
           v-if="!tour.isArchived && !isTourPurchased(tour.id)" 
           @click="addToCart(tour)"
-        >Dodaj u korpu</button>
-        <span v-if="isTourPurchased(tour.id)" class="purchased-label">Kupljeno</span>
+        >Add to Cart</button>
+        <span v-if="isTourPurchased(tour.id)" class="purchased-label">Purchased</span>
       </div>
     </div>
     <div v-else-if="!loading && !error" class="no-tours">No published tours found.</div>

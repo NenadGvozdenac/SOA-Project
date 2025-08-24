@@ -7,6 +7,10 @@
           <i class="icon">🏠</i>
           Home
         </router-link>
+        <router-link to="/profile" class="nav-link" v-if="isLoggedIn()">
+          <i class="icon">👤</i>
+          My Profile
+        </router-link>
         <button class="btn btn-secondary" v-if="isLoggedIn()" @click="handleLogout">
           <i class="icon">🚪</i>
           Logout
