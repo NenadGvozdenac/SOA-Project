@@ -1,13 +1,13 @@
 <template>
   <div class="tour-reviews">
-    <h4>Recenzije</h4>
-    <div v-if="reviews.length === 0">Nema recenzija</div>
+    <h4>Reviews</h4>
+    <div v-if="reviews.length === 0">No reviews</div>
     <div v-for="review in reviews" :key="review.id" class="review">
-      <div><b>Ocena:</b> {{ review.rating }}</div>
-      <div><b>Komentar:</b> {{ review.comment }}</div>
+      <div><b>Rating:</b> {{ review.rating }}</div>
+      <div><b>Comment:</b> {{ review.comment }}</div>
     </div>
     <div v-if="averageRating > 0" class="average-rating">
-      <b>Prosečna ocena:</b> {{ averageRating.toFixed(2) }}
+      <b>Average Rating:</b> {{ averageRating.toFixed(2) }}
     </div>
   </div>
 </template>

@@ -1,30 +1,30 @@
 <template>
   <div class="purchased-tours">
-    <h1>Kupljene Ture</h1>
-    <div v-if="loading">Učitavanje...</div>
+    <h1>Purchased Tours</h1>
+    <div v-if="loading">Loading...</div>
     <div v-else>
-      <div v-if="tours.length === 0">Nemate kupljenih tura.</div>
+      <div v-if="tours.length === 0">You have no purchased tours.</div>
       <div v-else>
         <div v-for="tour in tours.value" :key="tour.id" class="tour-details">
           <h2>{{ tour.name }}</h2>
-          <p><strong>Opis:</strong> {{ tour.description }}</p>
-          <p><strong>Autor ID:</strong> {{ tour.authorId }}</p>
-          <p><strong>Težina:</strong> {{ tour.difficulty }}</p>
-          <p><strong>Tagovi:</strong> {{ tour.tags && tour.tags.length ? tour.tags.join(', ') : 'Nema' }}</p>
+          <p><strong>Description:</strong> {{ tour.description }}</p>
+          <p><strong>Author ID:</strong> {{ tour.authorId }}</p>
+          <p><strong>Difficulty:</strong> {{ tour.difficulty }}</p>
+          <p><strong>Tags:</strong> {{ tour.tags && tour.tags.length ? tour.tags.join(', ') : 'None' }}</p>
           <p><strong>Status:</strong> {{ tour.status }}</p>
-          <p><strong>Cena:</strong> {{ tour.price }} RSD</p>
-          <p><strong>Objavljeno:</strong> {{ tour.publishedAt }}</p>
-          <p><strong>Arhivirano:</strong> {{ tour.archivedAt }}</p>
-          <p><strong>Dužina (km):</strong> {{ tour.lengthKm }}</p>
-          <p><strong>Kreirano:</strong> {{ tour.createdAt }}</p>
+          <p><strong>Price:</strong> {{ tour.price }} RSD</p>
+          <p><strong>Published:</strong> {{ tour.publishedAt }}</p>
+          <p><strong>Archived:</strong> {{ tour.archivedAt }}</p>
+          <p><strong>Length (km):</strong> {{ tour.lengthKm }}</p>
+          <p><strong>Created:</strong> {{ tour.createdAt }}</p>
           <div v-if="tour.checkpoints && tour.checkpoints.length">
-            <h3>Ključne tačke:</h3>
+            <h3>Checkpoints:</h3>
             <ul>
               <li v-for="cp in tour.checkpoints" :key="cp.id">
                 <strong>{{ cp.name }}</strong> - {{ cp.description }}<br>
                 <span>Lat: {{ cp.latitude }}, Lon: {{ cp.longitude }}</span>
                 <div v-if="cp.imageBase64">
-                  <img :src="'data:image/png;base64,' + cp.imageBase64" alt="Slika tačke" style="max-width:150px; margin-top:5px;" />
+                  <img :src="'data:image/png;base64,' + cp.imageBase64" alt="Checkpoint Image" style="max-width:150px; margin-top:5px;" />
                 </div>
               </li>
             </ul>

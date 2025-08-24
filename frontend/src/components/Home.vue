@@ -62,7 +62,7 @@
             <h3>🛒 Shopping Cart</h3>
             <p>Review your selected tours, manage your bookings, and complete your purchases securely. 
               Track your tour reservations and payment history.</p>
-            <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
+            <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">My Purchased Tours</router-link>
           </div>
 
           <div class="feature-card" @click="goToBlogs" style="cursor:pointer;">
@@ -81,6 +81,12 @@
             <h3>📖 Blogs from Followed Users</h3>
             <p>Read the latest blogs from users you follow. Stay updated with their travels
               and get personalized content recommendations.</p>
+          </div>
+
+          <div class="feature-card" @click="goToProfile" style="cursor:pointer;">
+            <h3>👤 My Profile</h3>
+            <p>Edit your personal information, update your password, and manage your profile settings.
+              Keep your information up to date for better user experience.</p>
           </div>
         </template>
 
@@ -187,6 +193,10 @@ const goToProfiles = () => {
 
 const goToFollowedBlogs = () => {
   window.location.href = '/followed-blogs';
+}
+
+const goToProfile = () => {
+  window.location.href = '/profile';
 }
 
 </script>

@@ -31,6 +31,35 @@ func GetAllUsers(c *gin.Context) {
 	utils.CreateGinResponse(c, "Users retrieved successfully", http.StatusOK, users)
 }
 
+func GetUserById(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.CreateGinResponse(c, "Invalid user ID", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Get user from the database
+	user, err := repositories.NewUserRepository().GetByID(uint(id))
+	if err != nil || user == nil {
+		utils.CreateGinResponse(c, "User not found", http.StatusNotFound, nil)
+		return
+	}
+
+	// Convert to DTO without password
+	userDTO := map[string]interface{}{
+		"id":        strconv.FormatUint(uint64(user.ID), 10),
+		"username":  user.Username,
+		"name":      user.Name,
+		"surname":   user.Surname,
+		"email":     user.Email,
+		"biography": user.Biography,
+		"moto":      user.Moto,
+	}
+
+	utils.CreateGinResponse(c, "User retrieved successfully", http.StatusOK, userDTO)
+}
+
 func GetAllUsersPublic(c *gin.Context) {
 	// Get all users from the database
 	users, err := repositories.NewUserRepository().GetAll()
@@ -90,12 +119,6 @@ func UpdateUser(c *gin.Context) {
 		}
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userUpdate.NewPassword), bcrypt.DefaultCost)
-	if err != nil {
-		utils.CreateGinResponse(c, "Failed to hash password", http.StatusInternalServerError, nil)
-		return
-	}
-
 	user := models.User{
 		Name:      userUpdate.Name,
 		Surname:   userUpdate.Surname,
@@ -103,7 +126,19 @@ func UpdateUser(c *gin.Context) {
 		Username:  userUpdate.Username,
 		Biography: userUpdate.Biography,
 		Moto:      userUpdate.Moto,
-		Password:  string(hashedPassword),
+	}
+
+	// Samo ako korisnik menja lozinku, ažuriraj password polje
+	if userUpdate.NewPassword != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userUpdate.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			utils.CreateGinResponse(c, "Failed to hash password", http.StatusInternalServerError, nil)
+			return
+		}
+		user.Password = string(hashedPassword)
+	} else {
+		// Zadrži postojeći password
+		user.Password = existingUser.Password
 	}
 
 	err = repositories.NewUserRepository().UpdateByID(uint(id), &user)
