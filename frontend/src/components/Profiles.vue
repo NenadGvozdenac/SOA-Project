@@ -1,22 +1,32 @@
 <template>
   <div>
     <Navbar />
+  </div>
+  <div>
+  <div v-if="loading" class="loading">
+    Loading...
+  </div>
+
+    <!-- Error -->
+    <div v-if="error" class="error">
+      {{ error }}
+    </div>
     <div class="profiles-container">
-      <h1>Korisnici</h1>
+      <h1>Users</h1>
 
       <!-- Tabs -->
       <div class="tabs">
         <button @click="activeTab = 'allUsers'" :class="{ active: activeTab === 'allUsers' }" class="tab-button">
-          Svi korisnici
+          All Users
         </button>
         <button @click="activeTab = 'suggestions'" :class="{ active: activeTab === 'suggestions' }" class="tab-button">
-          Predlozi za praćenje
+          Follow Suggestions
         </button>
         <button @click="activeTab = 'following'" :class="{ active: activeTab === 'following' }" class="tab-button">
-          Pratim ({{ followingCount }})
+          Following ({{ followingCount }})
         </button>
         <button @click="activeTab = 'followers'" :class="{ active: activeTab === 'followers' }" class="tab-button">
-          Prate me
+          Followers
         </button>
       </div> <!-- Loading -->
       <div v-if="loading" class="loading">
@@ -33,7 +43,7 @@
         <!-- All Users Tab -->
         <div v-if="activeTab === 'allUsers'" class="users-grid">
           <div v-if="allUsers.length === 0" class="no-data">
-            Nema korisnika u sistemu.
+            No users in the system.
           </div>
           <div v-for="user in allUsers" :key="user.id" class="user-card">
             <div class="user-avatar">
@@ -51,13 +61,13 @@
             <div class="user-actions">
               <button v-if="!isCurrentUser(user.id) && !isUserFollowed(user.id)" @click="followUser(user.id)"
                 :disabled="followingInProgress.has(user.id)" class="follow-btn">
-                {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
+                {{ followingInProgress.has(user.id) ? 'Following...' : 'Follow' }}
               </button>
               <button v-if="!isCurrentUser(user.id) && isUserFollowed(user.id)" @click="unfollowUser(user.id)"
                 :disabled="followingInProgress.has(user.id)" class="unfollow-btn">
-                {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
+                {{ followingInProgress.has(user.id) ? 'Unfollowing...' : 'Unfollow' }}
               </button>
-              <span v-if="isCurrentUser(user.id)" class="current-user-label">Vi ste</span>
+              <span v-if="isCurrentUser(user.id)" class="current-user-label">This is you</span>
             </div>
           </div>
         </div>
@@ -65,7 +75,7 @@
         <!-- Suggestions Tab -->
         <div v-if="activeTab === 'suggestions'" class="users-grid">
           <div v-if="suggestions.length === 0" class="no-data">
-            Nema predloga za praćenje.
+            No follow suggestions.
           </div>
           <div v-for="user in suggestions" :key="user.id" class="user-card">
             <div class="user-avatar">
@@ -82,7 +92,7 @@
             </div>
             <div class="user-actions">
               <button @click="followUser(user.id)" :disabled="followingInProgress.has(user.id)" class="follow-btn">
-                {{ followingInProgress.has(user.id) ? 'Pratim...' : 'Zaprati' }}
+                {{ followingInProgress.has(user.id) ? 'Following...' : 'Follow' }}
               </button>
             </div>
           </div>
@@ -91,7 +101,7 @@
         <!-- Following Tab -->
         <div v-if="activeTab === 'following'" class="users-grid">
           <div v-if="following.length === 0" class="no-data">
-            Ne pratite nikog.
+            You're not following anyone.
           </div>
           <div v-for="user in following" :key="user.id" class="user-card">
             <div class="user-avatar">
@@ -108,7 +118,7 @@
             </div>
             <div class="user-actions">
               <button @click="unfollowUser(user.id)" :disabled="followingInProgress.has(user.id)" class="unfollow-btn">
-                {{ followingInProgress.has(user.id) ? 'Prekidam...' : 'Prekini praćenje' }}
+                {{ followingInProgress.has(user.id) ? 'Unfollowing...' : 'Unfollow' }}
               </button>
             </div>
           </div>
@@ -117,7 +127,7 @@
         <!-- Followers Tab -->
         <div v-if="activeTab === 'followers'" class="users-grid">
           <div v-if="followers.length === 0" class="no-data">
-            Niko vas ne prati.
+            No one is following you.
           </div>
           <div v-for="user in followers" :key="user.id" class="user-card">
             <div class="user-avatar">
@@ -133,7 +143,7 @@
               <p class="email">{{ user.email }}</p>
             </div>
             <div class="user-actions">
-              <span class="follower-label">Prati vas</span>
+              <span class="follower-label">Follows you</span>
             </div>
           </div>
         </div>
@@ -196,7 +206,7 @@ export default {
           await this.loadFollowers();
         }
       } catch (error) {
-        this.error = error.message || 'Greška pri učitavanju podataka';
+        this.error = error.message || 'Error loading data';
         console.error('Error loading data:', error);
       } finally {
         this.loading = false;
@@ -205,7 +215,8 @@ export default {
 
     async loadAllUsers() {
       const response = await FollowingsService.getAllUsers();
-      this.allUsers = response.data || [];
+      console.log(response)
+      this.allUsers = response.data.filter(user => user.id != 1) || [];
     },
 
     async loadSuggestions() {
@@ -238,10 +249,10 @@ export default {
           this.suggestions.splice(userIndex, 1);
         }
 
-        this.$toast?.success?.('Uspešno ste zapratili korisnika!');
+        this.$toast?.success?.('Successfully followed user!');
       } catch (error) {
         console.error('Error following user:', error);
-        this.$toast?.error?.('Greška pri praćenju korisnika');
+        this.$toast?.error?.('Error following user');
       } finally {
         this.followingInProgress.delete(userId);
       }
@@ -255,10 +266,10 @@ export default {
 
         await this.loadFollowing();
 
-        this.$toast?.success?.('Uspešno ste prekinuli praćenje!');
+        this.$toast?.success?.('Successfully unfollowed user!');
       } catch (error) {
         console.error('Error unfollowing user:', error);
-        this.$toast?.error?.('Greška pri prekidanju praćenja');
+        this.$toast?.error?.('Error unfollowing user');
       } finally {
         this.followingInProgress.delete(userId);
       }
@@ -276,8 +287,8 @@ export default {
     getRoleDisplayName(role) {
       const roleMap = {
         'Admin': 'Administrator',
-        'Guide': 'Vodič/Autor',
-        'Tourist': 'Turista'
+        'Guide': 'Guide/Author',
+        'Tourist': 'Tourist'
       };
       return roleMap[role] || role;
     }

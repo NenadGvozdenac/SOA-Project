@@ -58,14 +58,6 @@
               next adventure with detailed route maps and pricing information.</p>
           </div>
 
-          <div class="feature-card" v-if="isTourist()" @click="goToShoppingCart" style="cursor:pointer;">
-            <h3>🛒 Shopping Cart</h3>
-            <p>Review your selected tours, manage your bookings, and complete your purchases securely.
-              Track your tour reservations and payment history.</p>
-            <router-link to="/purchased-tours" class="btn btn-primary"
-              style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
-          </div>
-
           <div class="feature-card" @click="goToBlogs" style="cursor:pointer;">
             <h3>📝 Travel Blogs</h3>
             <p>Share your travel experiences and read inspiring stories from fellow travelers. Create engaging blog
@@ -73,15 +65,15 @@
           </div>
 
           <div class="feature-card" @click="goToProfiles" style="cursor:pointer;">
-            <h3>👥 Korisnici i Praćenja</h3>
-            <p>Pronađite korisnike za praćenje, upravljajte svojim pratiocima i otkrijte nove profile.
-              Pratite zanimljive putopisce i proširite svoju mrežu kontakata.</p>
+            <h3>👥 Users & Followers</h3>
+            <p>Find users to follow, manage your followers and discover new profiles.
+              Follow interesting travel bloggers and expand your network.</p>
           </div>
 
           <div class="feature-card" @click="goToFollowedBlogs" style="cursor:pointer;">
-            <h3>📖 Blogovi od Praćenih</h3>
-            <p>Čitajte najnovije blogove od korisnika koje pratite. Budite u toku sa njihovim putovanjima
-              i dobijajte personalizovane preporuke sadržaja.</p>
+            <h3>📖 Blogs from Followed Users</h3>
+            <p>Read the latest blogs from users you follow. Stay updated with their travels
+              and get personalized content recommendations.</p>
           </div>
         </template>
 
@@ -103,7 +95,8 @@
             <div class="container">
               <div class="feature-card preview-card">
                 <h3>Explore Tours</h3>
-                <p>Discover amazing published tours from verified guides. Browse destinations, read reviews, and book your
+                <p>Discover amazing published tours from verified guides. Browse destinations, read reviews, and book
+                  your
                   next adventure with detailed route maps and pricing information.</p>
               </div>
               <div class="feature-card preview-card">
@@ -124,13 +117,13 @@
               </div>
               <div class="feature-card preview-card">
                 <h3>Social Features</h3>
-                <p>Pronađite korisnike za praćenje, upravljajte svojim pratiocima i otkrijte nove profile.
-                  Pratite zanimljive putopisce i proširite svoju mrežu kontakata.</p>
+                <p>Find users to follow, manage your followers and discover new profiles.
+                  Follow interesting travel bloggers and expand your network.</p>
               </div>
               <div class="feature-card preview-card">
                 <h3>Personalized Content</h3>
-                <p>Čitajte najnovije blogove od korisnika koje pratite. Budite u toku sa njihovim putovanjima
-                  i dobijajte personalizovane preporuke sadržaja.</p>
+                <p>Read the latest blogs from users you follow. Stay updated with their travels
+                  and get personalized content recommendations.</p>
               </div>
             </div>
           </div>
@@ -176,11 +169,6 @@ const goToTours = () => {
 const goToToursForTourist = () => {
   window.location.href = '/tours-for-tourist';
 }
-
-const goToFollowers = () => {
-  window.location.href = '/followers';
-}
-
 const goToBlogs = () => {
   window.location.href = '/blogs';
 }
@@ -191,10 +179,6 @@ const goToProfiles = () => {
 
 const goToFollowedBlogs = () => {
   window.location.href = '/followed-blogs';
-}
-
-const goToShoppingCart = () => {
-  window.location.href = '/shopping-cart';
 }
 
 </script>

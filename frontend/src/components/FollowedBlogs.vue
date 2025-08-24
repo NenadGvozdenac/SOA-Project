@@ -1,30 +1,33 @@
 <template>
+  <div>
+    <Navbar />
+  </div>
   <div class="followed-blogs-container">
-    <h1>Blogovi od praćenih korisnika</h1>
-    <p class="subtitle">Ovde možete videti blogove samo od korisnika koje pratite</p>
+    <h1>Blogs from Followed Users</h1>
+    <p class="subtitle">Here you can see blogs only from users you follow</p>
 
     <!-- Loading -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      Učitavam blogove...
+      Loading blogs...
     </div>
 
     <!-- Error -->
     <div v-if="error" class="error">
       <i class="error-icon">⚠️</i>
       {{ error }}
-      <button @click="loadBlogs" class="retry-btn">Pokušaj ponovo</button>
+      <button @click="loadBlogs" class="retry-btn">Try again</button>
     </div>
 
     <!-- No blogs -->
     <div v-if="!loading && !error && blogs.length === 0" class="no-blogs">
       <div class="no-blogs-icon">📝</div>
-      <h3>Nema blogova</h3>
+      <h3>No blogs</h3>
       <p>
-        Korisnici koje pratite još uvek nisu objavili blogove ili ne pratite nikog.
+        Users you follow haven't published blogs yet or you're not following anyone.
       </p>
       <router-link to="/profiles" class="find-users-btn">
-        Pronađi korisnike za praćenje
+        Find users to follow
       </router-link>
     </div>
 
@@ -61,9 +64,13 @@
 
 <script>
 import { FollowingsService } from '../services/followings_service.js';
+import Navbar from './Navbar.vue';
 
 export default {
   name: 'FollowedBlogs',
+  components: {
+    Navbar
+  },
   data() {
     return {
       blogs: [],
@@ -97,7 +104,7 @@ export default {
         console.log('Parsed blogs:', blogs);
         this.blogs = blogs || [];
       } catch (error) {
-        this.error = error.message || 'Greška pri učitavanju blogova';
+        this.error = error.message || 'Error loading blogs';
         console.error('Error loading blogs:', error);
       } finally {
         this.loading = false;
@@ -132,7 +139,7 @@ export default {
 <style scoped>
 .followed-blogs-container {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 80px auto;
   padding: 20px;
 }
 
