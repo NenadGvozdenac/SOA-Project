@@ -7,7 +7,7 @@
         <div class="nav-links">
           <router-link to="/login" class="btn btn-primary" v-if="!isLoggedIn()">Login</router-link>
           <router-link to="/register" class="btn btn-secondary" v-if="!isLoggedIn()">Register</router-link>
-          
+
           <!-- Admin Dropdown -->
           <div v-if="isAdmin()" class="dropdown">
             <button class="btn btn-admin dropdown-toggle">
@@ -23,7 +23,7 @@
               </router-link>
             </div>
           </div>
-          
+
           <button class="btn btn-secondary" v-if="isLoggedIn()" @click="handleLogout">Logout</button>
         </div>
       </div>
@@ -46,27 +46,40 @@
       <div class="container">
         <div v-if="isAuthor()" class="feature-card" @click="goToTours" style="cursor:pointer;">
           <h3>🗺️ Tour Management</h3>
-          <p>Create, edit and publish your tours with advanced checkpoint mapping, route calculation, and pricing. 
+          <p>Create, edit and publish your tours with advanced checkpoint mapping, route calculation, and pricing.
             Manage your entire tour catalog with interactive maps and real-time updates.</p>
         </div>
 
         <div v-if="isTourist()" class="feature-card" @click="goToToursForTourist" style="cursor:pointer;">
           <h3>🌍 Explore Tours</h3>
-          <p>Discover amazing published tours from verified guides. Browse destinations, read reviews, and book your 
+          <p>Discover amazing published tours from verified guides. Browse destinations, read reviews, and book your
             next adventure with detailed route maps and pricing information.</p>
         </div>
 
         <div class="feature-card" v-if="isTourist()" @click="goToShoppingCart" style="cursor:pointer;">
           <h3>� Shopping Cart</h3>
-          <p>Review your selected tours, manage your bookings, and complete your purchases securely. 
+          <p>Review your selected tours, manage your bookings, and complete your purchases securely.
             Track your tour reservations and payment history.</p>
-          <router-link to="/purchased-tours" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
+          <router-link to="/purchased-tours" class="btn btn-primary"
+            style="margin-top: 1rem; display: inline-block;">Moje kupljene ture</router-link>
         </div>
 
         <div class="feature-card" @click="goToBlogs" style="cursor:pointer;">
-          <h3>� Travel Blogs</h3>
-          <p>Share your travel experiences and read inspiring stories from fellow travelers. Create engaging blog 
+          <h3>📝 Travel Blogs</h3>
+          <p>Share your travel experiences and read inspiring stories from fellow travelers. Create engaging blog
             content about your adventures and discover new destinations.</p>
+        </div>
+
+        <div class="feature-card" v-if="isLoggedIn()" @click="goToProfiles" style="cursor:pointer;">
+          <h3>👥 Korisnici i Praćenja</h3>
+          <p>Pronađite korisnike za praćenje, upravljajte svojim pratiocima i otkrijte nove profile.
+            Pratite zanimljive putopisce i proširite svoju mrežu kontakata.</p>
+        </div>
+
+        <div class="feature-card" v-if="isLoggedIn()" @click="goToFollowedBlogs" style="cursor:pointer;">
+          <h3>📖 Blogovi od Praćenih</h3>
+          <p>Čitajte najnovije blogove od korisnika koje pratite. Budite u toku sa njihovim putovanjima
+            i dobijajte personalizovane preporuke sadržaja.</p>
         </div>
       </div>
     </section>
@@ -118,6 +131,18 @@ const goToBlogs = () => {
   window.location.href = '/blogs';
 }
 
+const goToProfiles = () => {
+  window.location.href = '/profiles';
+}
+
+const goToFollowedBlogs = () => {
+  window.location.href = '/followed-blogs';
+}
+
+const goToShoppingCart = () => {
+  window.location.href = '/shopping-cart';
+}
+
 </script>
 
 <style scoped>
@@ -150,7 +175,23 @@ const goToBlogs = () => {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.admin-icon {
+.btn-social {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.btn-social:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.admin-icon,
+.social-icon {
   font-size: 1.1rem;
 }
 
@@ -188,6 +229,7 @@ const goToBlogs = () => {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
