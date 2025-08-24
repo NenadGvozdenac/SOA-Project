@@ -34,7 +34,7 @@
       <div class="container">
         <h1>Welcome to TourismHub</h1>
         <p>Your ultimate microservices platform for tourism, blogs, stakeholders, and followers management</p>
-        <div class="hero-buttons">
+        <div class="hero-buttons" v-if="!isLoggedIn()">
           <router-link to="/register" class="btn btn-primary">Get Started</router-link>
           <router-link to="/login" class="btn btn-secondary">Sign In</router-link>
         </div>

@@ -29,9 +29,9 @@
       </div>
 
       <!-- Content based on active tab -->
-      <div v-if="!loading && !error" class="users-grid">
+      <div v-if="!loading && !error">
         <!-- All Users Tab -->
-        <div v-if="activeTab === 'allUsers'">
+        <div v-if="activeTab === 'allUsers'" class="users-grid">
           <div v-if="allUsers.length === 0" class="no-data">
             Nema korisnika u sistemu.
           </div>
@@ -63,7 +63,7 @@
         </div>
 
         <!-- Suggestions Tab -->
-        <div v-if="activeTab === 'suggestions'">
+        <div v-if="activeTab === 'suggestions'" class="users-grid">
           <div v-if="suggestions.length === 0" class="no-data">
             Nema predloga za praćenje.
           </div>
@@ -89,7 +89,7 @@
         </div>
 
         <!-- Following Tab -->
-        <div v-if="activeTab === 'following'">
+        <div v-if="activeTab === 'following'" class="users-grid">
           <div v-if="following.length === 0" class="no-data">
             Ne pratite nikog.
           </div>
@@ -115,7 +115,7 @@
         </div>
 
         <!-- Followers Tab -->
-        <div v-if="activeTab === 'followers'">
+        <div v-if="activeTab === 'followers'" class="users-grid">
           <div v-if="followers.length === 0" class="no-data">
             Niko vas ne prati.
           </div>
@@ -343,33 +343,41 @@ h1 {
   margin-bottom: 20px;
 }
 
-.no-data {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
-}
-
 .users-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.no-data {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .user-card {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
+  border: 1px solid #f0f0f0;
+  min-height: 120px;
 }
 
 .user-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: #e0e7ff;
 }
 
 .user-avatar {
@@ -377,24 +385,25 @@ h1 {
 }
 
 .avatar-img {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #e0e0e0;
+  border: 3px solid #e0e7ff;
 }
 
 .default-avatar {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .user-info {
@@ -403,22 +412,32 @@ h1 {
 }
 
 .user-info h3 {
-  margin: 0 0 5px 0;
-  color: #333;
-  font-size: 18px;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .username {
-  margin: 0 0 5px 0;
-  color: #666;
+  margin: 0 0 4px 0;
+  color: #6b7280;
   font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .email {
   margin: 0 0 5px 0;
-  color: #888;
+  color: #9ca3af;
   font-size: 13px;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .role {
@@ -434,41 +453,57 @@ h1 {
 
 .user-actions {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 4px;
 }
 
 .follow-btn {
-  background: #007bff;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s ease;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  min-width: 120px;
 }
 
 .follow-btn:hover:not(:disabled) {
-  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
 }
 
 .follow-btn:disabled {
-  background: #6c757d;
+  background: #9ca3af;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .unfollow-btn {
-  background: #dc3545;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s ease;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  min-width: 120px;
 }
 
 .unfollow-btn:hover:not(:disabled) {
-  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
 .unfollow-btn:disabled {
@@ -497,15 +532,35 @@ h1 {
 @media (max-width: 768px) {
   .users-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .user-card {
     flex-direction: column;
     text-align: center;
+    min-height: auto;
+    padding: 20px;
   }
 
   .user-info {
     text-align: center;
+  }
+
+  .avatar-img,
+  .default-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .default-avatar {
+    font-size: 24px;
   }
 }
 </style>
