@@ -1,4 +1,49 @@
 services:
+  api_gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway_dev
+    restart: always
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./gateway:/app
+      - /app/node_modules
+    depends_on:
+      stakeholders_service:
+        condition: service_healthy
+      blogs_service:
+        condition: service_healthy
+      tours_service:
+        condition: service_healthy
+      followings_service:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      BLOGS_SERVICE_URL: http://blogs_service:8081
+      FOLLOWINGS_SERVICE_URL: http://followings_service:9090
+      STAKEHOLDERS_SERVICE_URL: http://stakeholders_service:8080
+      TOURS_SERVICE_URL: http://tours_service:8082
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 1000
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3001
+      LOG_LEVEL: debug
+    command: npm run dev
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=gateway-dev"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   stakeholders_service:
     build:
       context: ./services/stakeholders_service
@@ -212,16 +257,13 @@ services:
       - ./frontend:/app
       - /app/node_modules # Prevent overwriting node_modules
     environment:
-      VITE_API_URL: http://localhost:5173
-      VITE_STAKEHOLDERS_URL: http://localhost:8080/api
-      VITE_BLOGS_URL: http://localhost:8081/api
-      VITE_FOLLOWINGS_URL: http://localhost:9090/api
-      VITE_TOURS_URL: http://localhost:8082/api
+      VITE_API_URL: http://localhost:3001/api
+      VITE_STAKEHOLDERS_URL: http://localhost:3001/api/stakeholders
+      VITE_BLOGS_URL: http://localhost:3001/api/blogs
+      VITE_FOLLOWINGS_URL: http://localhost:3001/api/followings
+      VITE_TOURS_URL: http://localhost:3001/api/tours
     depends_on:
-      - stakeholders_service
-      - blogs_service
-      - followings_service
-      - tours_service
+      - api_gateway
 
   # Jaeger - potreban jer servisi imaju hardkodovanu Jaeger konfiguraciju
   jaeger:

@@ -1,4 +1,42 @@
 services:
+  api_gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      stakeholders_service:
+        condition: service_healthy
+      blogs_service:
+        condition: service_healthy
+      tours_service:
+        condition: service_healthy
+      followings_service:
+        condition: service_healthy
+    environment:
+      BLOGS_SERVICE_URL: http://blogs_service:8081
+      FOLLOWINGS_SERVICE_URL: http://followings_service:9090
+      STAKEHOLDERS_SERVICE_URL: http://stakeholders_service:8080
+      TOURS_SERVICE_URL: http://tours_service:8082
+      NODE_ENV: development
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=gateway"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - soa_network
+
   stakeholders_service:
     build:
       context: ./services/stakeholders_service
@@ -33,6 +71,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   blogs_service:
     build:
@@ -69,6 +109,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   tours_service: # dotnet ef migrations add InitialCreate - u terminali za tours_service
     build:       # dotnet ef database update - mozda?
@@ -105,6 +147,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   postgres_db:
     container_name: postgres_db
@@ -119,6 +163,8 @@ services:
     ports:
       - "5432:5432"
     attach: false
+    networks:
+      - soa_network
     
   postgres_tours_db:
     container_name: postgres_tours_db
@@ -133,6 +179,8 @@ services:
     ports:
       - "5433:5432"
     attach: false
+    networks:
+      - soa_network
 
   followings_service:
     build:
@@ -171,6 +219,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   neo4j:
     container_name: neo4j_db
@@ -185,6 +235,8 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     attach: false
+    networks:
+      - soa_network
   
   mongo_db:
     container_name: mongo_db
@@ -201,6 +253,8 @@ services:
     ports:
       - "27017:27017"
     attach: false
+    networks:
+      - soa_network
   
   frontend-app:
     build:
@@ -212,16 +266,15 @@ services:
       - ./frontend:/app
       - /app/node_modules # Prevent overwriting node_modules
     environment:
-      VITE_API_URL: http://localhost:5173
-      VITE_STAKEHOLDERS_URL: http://localhost:8080/api
-      VITE_BLOGS_URL: http://localhost:8081/api
-      VITE_FOLLOWINGS_URL: http://localhost:8083/api
-      VITE_TOURS_URL: http://localhost:8082/api
+      VITE_API_URL: http://localhost:3001/api
+      VITE_STAKEHOLDERS_URL: http://localhost:3001/api/stakeholders
+      VITE_BLOGS_URL: http://localhost:3001/api/blogs
+      VITE_FOLLOWINGS_URL: http://localhost:3001/api/followings
+      VITE_TOURS_URL: http://localhost:3001/api/tours
     depends_on:
-      - stakeholders_service
-      - blogs_service
-      - followings_service
-      - tours_service
+      - api_gateway
+    networks:
+      - soa_network
 
   # ===============================================
   # MONITORING, LOGGING & TRACING INFRASTRUCTURE
@@ -240,6 +293,8 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # Prometheus - Metrics Collection
   prometheus:
@@ -258,6 +313,8 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # Node Exporter - Host System Metrics (CPU, RAM, Disk, Network)
   # Note: For Windows Docker Desktop, using regular network mode instead of host
@@ -282,6 +339,8 @@ services:
       - '--collector.filesystem'
       - '--collector.netdev'
       - '--collector.loadavg'
+    networks:
+      - soa_network
 
   # cAdvisor - Docker Container Metrics (CPU, RAM, Disk, Network per container)
   cadvisor:
@@ -303,6 +362,8 @@ services:
       - '--housekeeping_interval=10s'
       - '--docker_only=true'
       - '--store_container_labels=false'
+    networks:
+      - soa_network
 
   # Grafana - Metrics Visualization
   grafana:
@@ -322,6 +383,8 @@ services:
     depends_on:
       - prometheus
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # ===============================================
   # ELK STACK - CENTRALIZED LOGGING
@@ -342,6 +405,8 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # Logstash - Log Processing
   logstash:
@@ -358,6 +423,8 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # Kibana - Log Visualization
   kibana:
@@ -371,6 +438,8 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+    networks:
+      - soa_network
 
   # Filebeat - Log Shipping
   filebeat:
@@ -384,6 +453,8 @@ services:
     depends_on:
       - logstash
     restart: unless-stopped
+    networks:
+      - soa_network
 
 volumes:
   postgres_data:
@@ -402,3 +473,6 @@ volumes:
     driver: local
   elasticsearch_data:
     driver: local
+networks:
+  soa_network:
+    driver: bridge
