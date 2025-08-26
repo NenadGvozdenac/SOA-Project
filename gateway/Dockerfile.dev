@@ -4,16 +4,16 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY gateway/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Clean npm cache and install dependencies for development
+RUN npm cache clean --force && npm install
 
-# Copy proto files first
-COPY ../proto /proto
+# Copy proto files to the expected location
+COPY proto ../proto
 
 # Copy application code
-COPY . .
+COPY gateway .
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -30,5 +30,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application in development mode
+CMD ["npm", "run", "dev"]

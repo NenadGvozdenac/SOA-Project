@@ -103,22 +103,12 @@
 </template>
 
 <script setup>
-const deleteCheckpoint = async (id) => {
-  try {
-    const jwt = localStorage.getItem('token');
-    await axios.delete(`http://localhost:8082/api/tours/checkpoint/delete/${id}`, {
-      headers: { Authorization: `Bearer ${jwt}` }
-    });
-    message.value = 'Checkpoint deleted successfully!';
-    await fetchCheckpoints();
-  } catch (err) {
-    message.value = err?.response?.data?.message || err?.message || 'Error deleting checkpoint.';
-  }
-};
+
 
 import { useRoute } from 'vue-router';
 import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
+import { AuthService } from '../services/auth_service.js';
 const route = useRoute();
 const checkpoints = ref([]);
 const editingCheckpoint = ref(null);
@@ -141,6 +131,21 @@ const tourInfo = ref(null);
 const actionMessage = ref('');
 const difficultyMap = { 0: 'Easy', 1: 'Medium', 2: 'Hard', 'Easy': 'Easy', 'Medium': 'Medium', 'Hard': 'Hard' };
 const statusMap = { 0: 'Draft', 1: 'Published', 2: 'Archived', 'Draft': 'Draft', 'Published': 'Published', 'Archived': 'Archived' };
+
+const deleteCheckpoint = async (id) => {
+  try {
+    const jwt = localStorage.getItem('token');
+    const userInfo = AuthService.decode(jwt);
+    // Koristi novi gRPC endpoint preko gateway-net sa query parametrima
+    await axios.delete(`http://localhost:8084/api/checkpoints/${id}?user_id=${userInfo?.id || ''}&auth_token=${jwt}`, {
+      headers: { Authorization: `Bearer ${jwt}` }
+    });
+    message.value = 'Checkpoint deleted successfully!';
+    await fetchCheckpoints();
+  } catch (err) {
+    message.value = err?.response?.data?.message || err?.message || 'Error deleting checkpoint.';
+  }
+};
 
 function editCheckpoint(cp) {
   editingCheckpoint.value = { ...cp };
@@ -421,8 +426,10 @@ watch(checkpoints, async (val) => {
 const archiveTour = async () => {
   try {
     const jwt = localStorage.getItem('token');
+    const userInfo = AuthService.decode(jwt);
     const tourId = route.query.tourId;
-    await axios.post(`http://localhost:8082/api/tours/archive/${tourId}`, {}, {
+    // Koristi novi gRPC endpoint preko gateway-net sa query parametrima
+    await axios.patch(`http://localhost:8084/api/tours/${tourId}/archive?user_id=${userInfo?.id || ''}&auth_token=${jwt}`, {}, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
     actionMessage.value = 'Tura je uspešno arhivirana!';
