@@ -1,4 +1,5 @@
 using tours_service.src.Tours.API.Startup;
+using tours_service.src.Tours.API.Grpc;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.IdentityModel.Logging;
@@ -11,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.ConfigureSwagger(builder.Configuration);
+
+// Add gRPC services
+builder.Services.AddGrpc();
 
 const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
@@ -53,6 +57,9 @@ app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map gRPC service
+app.MapGrpcService<ToursGrpcService>();
 
 app.MapControllers();
 

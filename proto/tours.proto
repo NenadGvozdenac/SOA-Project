@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package tours;
+
+// The tours service definition
+service ToursService {
+  // Gets all tours
+  rpc GetAllTours (GetAllToursRequest) returns (GetAllToursResponse);
+  
+  // Creates a new tour
+  rpc CreateTour (CreateTourRequest) returns (CreateTourResponse);
+}
+
+// Request/Response messages for GetAllTours
+message GetAllToursRequest {
+  string user_id = 1;
+  string auth_token = 2;
+}
+
+message GetAllToursResponse {
+  repeated Tour tours = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// Request/Response messages for CreateTour
+message CreateTourRequest {
+  string user_id = 1;
+  string auth_token = 2;
+  CreateTourData tour_data = 3;
+}
+
+message CreateTourResponse {
+  Tour tour = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// Data models
+message Tour {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 difficulty = 5;
+  string status = 6;
+  repeated string tags = 7;
+  int64 author_id = 8;
+  string created_at = 9;
+}
+
+message CreateTourData {
+  string name = 1;
+  string description = 2;
+  int32 difficulty = 3;
+  repeated string tags = 4;
+}

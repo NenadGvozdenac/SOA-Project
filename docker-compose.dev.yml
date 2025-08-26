@@ -1,8 +1,8 @@
 services:
   api_gateway:
     build:
-      context: ./gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./gateway/Dockerfile.dev
     container_name: api_gateway_dev
     restart: always
     ports:
@@ -39,6 +39,48 @@ services:
         labels: "service=gateway-dev"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  gateway_net:
+    build:
+      context: ./gateway-net
+      dockerfile: Dockerfile
+    container_name: gateway_net_dev
+    restart: always
+    ports:
+      - "8084:8084"
+    depends_on:
+      stakeholders_service:
+        condition: service_healthy
+      blogs_service:
+        condition: service_healthy
+      tours_service:
+        condition: service_healthy
+      followings_service:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8084
+      BLOGS_SERVICE_URL: http://blogs_service:8081
+      FOLLOWINGS_SERVICE_URL: http://followings_service:9090
+      STAKEHOLDERS_SERVICE_URL: http://stakeholders_service:8080
+      TOURS_SERVICE_URL: http://tours_service:8083
+      #TOURS_SERVICE_URL: http://tours_service:8082
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_AGENT_PORT: 6831
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=gateway-net-dev"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -117,12 +159,13 @@ services:
 
   tours_service: # dotnet ef migrations add InitialCreate - u terminali za tours_service
     build:       # dotnet ef database update - mozda?
-      context: ./services/tours_service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/tours_service/Dockerfile
     container_name: tours_service
     restart: always
     ports:
-      - "8082:8082"
+      - "8082:8082"  # HTTP API
+      - "8083:8083"  # gRPC
     depends_on:
       - postgres_tours_db
       - jaeger
@@ -133,7 +176,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tours_db
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8082
+      #ASPNETCORE_URLS: http://+:8082;http://+:8083
       JAEGER_AGENT_HOST: jaeger
       JAEGER_AGENT_PORT: 6831
       JAEGER_SAMPLER_TYPE: const
@@ -258,6 +301,7 @@ services:
       - /app/node_modules # Prevent overwriting node_modules
     environment:
       VITE_API_URL: http://localhost:3001/api
+      VITE_GATEWAY_NET_URL: http://localhost:8084/api
       VITE_STAKEHOLDERS_URL: http://localhost:3001/api/stakeholders
       VITE_BLOGS_URL: http://localhost:3001/api/blogs
       VITE_FOLLOWINGS_URL: http://localhost:3001/api/followings

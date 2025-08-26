@@ -11,6 +11,9 @@ const { verifyToken, verifyApiKey, addRequestId } = require('./middleware/auth')
 const { developmentFormat, productionFormat, logErrors } = require('./middleware/logging');
 const { healthChecker, checkServiceHealth, getHealthStatus } = require('./middleware/health');
 
+// Import RPC routes
+const toursRpcRoutes = require('./routes/tours-rpc');
+
 const app = express();
 const PORT = 3000;
 
@@ -67,6 +70,9 @@ app.post('/test', (req, res) => {
 // Authentication middleware (optional - can be enabled per route)
 // app.use(verifyToken);
 // app.use(verifyApiKey);
+
+// RPC Routes - using gRPC protocol
+app.use('/api/rpc', toursRpcRoutes);
 
 // Health check endpoint (enhanced)
 app.get('/health', getHealthStatus);

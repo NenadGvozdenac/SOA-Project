@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "followings_service", "follo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tours_service", "tours_service\tours_service.csproj", "{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gateway-net", "..\gateway-net\gateway-net.csproj", "{0646B056-30BB-ABF1-26A2-59FD91CB2E2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E33B8B2B-F8BC-4544-7B99-27DDD153DA17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0646B056-30BB-ABF1-26A2-59FD91CB2E2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0646B056-30BB-ABF1-26A2-59FD91CB2E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0646B056-30BB-ABF1-26A2-59FD91CB2E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0646B056-30BB-ABF1-26A2-59FD91CB2E2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

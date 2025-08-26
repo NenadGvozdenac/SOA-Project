@@ -16,7 +16,7 @@
           <option value="Hard">Hard</option>
         </select>
         <input v-model="tagsInput" placeholder="Enter tags separated by comma" />
-        <div>
+        <div v-if="newTour.tags && Array.isArray(newTour.tags) && newTour.tags.length > 0">
           <span v-for="tag in newTour.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
         <button type="submit">Add Tour</button>
@@ -26,7 +26,7 @@
 
     <div v-if="loading" class="loading">Loading tours...</div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="tours.length" class="tours-grid">
+    <div v-if="tours && tours.length" class="tours-grid">
       <div v-for="tour in tours" :key="tour.id" class="tour-card" @click="goToCheckpoint(tour.id)" style="cursor:pointer;">
         <h3>{{ tour.name }}</h3>
         <p><strong>Description:</strong> {{ tour.description }}</p>
@@ -42,7 +42,7 @@
           </span>
         </p>
         <p><strong>Price:</strong> {{ tour.price }} €</p>
-        <div v-if="tour.tags && tour.tags.length">
+        <div v-if="tour.tags && Array.isArray(tour.tags) && tour.tags.length > 0">
           <strong>Tags:</strong>
           <span v-for="tag in tour.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
@@ -57,6 +57,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { TOURS_URL } from '../services/const_service.js';
+import { AuthService } from '../services/auth_service.js';
 import Navbar from './Navbar.vue';
 import { useRouter } from 'vue-router';
 
@@ -82,14 +83,43 @@ const difficultyLabels = {
   'Hard': 'Hard'
 };
 
+// Helper function to convert difficulty string to number for gRPC
+const getDifficultyNumber = (difficulty) => {
+  const difficultyMap = {
+    'Easy': 0,
+    'Medium': 1,
+    'Hard': 2
+  };
+  return difficultyMap[difficulty] !== undefined ? difficultyMap[difficulty] : 0;
+};
+
 onMounted(async () => {
   try {
     const jwt = localStorage.getItem('token');
-    const response = await axios.get(`http://localhost:8082/api/tours`, {
+    const userInfo = AuthService.decode(jwt);
+    const userRole = userInfo?.userRole || 'Guide'; // Assume Guide role for Tours component
+    
+    // gRPC call via gateway-net - NEW 
+    const response = await axios.get(`http://localhost:8084/api/tours?user_id=${userInfo?.id || ''}&auth_token=${jwt}`, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-    console.log('Tours fetched successfully:', response.data.value);
-    tours.value = response.data.value;
+    
+    // RPC call - OLD (using gateway)
+    // const response = await axios.get(`http://localhost:3000/api/rpc/tours/rpc`, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    // REST call - BACKUP (commented)
+    // const response = await axios.get(`http://localhost:8082/api/tours`, {
+    // const response = await axios.get(`http://localhost:3001/api/tours`, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    console.log('Tours fetched successfully:', response.data);
+    tours.value = response.data?.tours || [];
+    // console.log('Tours fetched successfully:', response.data.tours || response.data.value);POTRENCIJALNO?
+    // tours.value = response.data.tours || response.data.value || [];
+
   } catch (err) {
     error.value = 'Failed to load tours.';
   } finally {
@@ -109,20 +139,45 @@ const addError = ref('');
 const addTour = async () => {
   try {
     const jwt = localStorage.getItem('token');
+    const userInfo = AuthService.decode(jwt);
+    const userRole = userInfo?.userRole || 'Guide'; // Assume Guide role for creating tours
+    
     // Parse tags from input
     newTour.value.tags = tagsInput.value
       .split(',')
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
     const payload = {
-      name: newTour.value.name,
-      description: newTour.value.description,
-      difficulty: newTour.value.difficulty,
-      tags: newTour.value.tags
+      // name: newTour.value.name,
+      // description: newTour.value.description,
+      // difficulty: newTour.value.difficulty,
+      // tags: newTour.value.tags
+      user_id: userInfo?.id?.toString() || '',
+      auth_token: jwt,
+      tour_data: {
+        name: newTour.value.name,
+        description: newTour.value.description,
+        difficulty: getDifficultyNumber(newTour.value.difficulty),
+        tags: newTour.value.tags
+      }
     };
-    const response = await axios.post('http://localhost:8082/api/tours', payload, {
+    
+    // gRPC call via gateway-net - NEW 
+    const response = await axios.post(`http://localhost:8084/api/tours`, payload, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
+    
+    // RPC call - OLD (using gateway)
+    // const response = await axios.post(`http://localhost:3000/api/rpc/tours/rpc`, payload, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    // REST call - BACKUP (commented)
+    // const response = await axios.post('http://localhost:8082/api/tours', payload, {
+    // const response = await axios.post('http://localhost:3001/api/tours', payload, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
     addError.value = '';
     await fetchTours();
     newTour.value = { name: '', description: '', difficulty: '', price: 0, tags: [] };
@@ -130,7 +185,11 @@ const addTour = async () => {
     // Prebaci na AuthorMapCheckpoint za novu turu
     if (response.data && response.data.value && response.data.value.id) {
       goToCheckpoint(response.data.value.id);
+    } else if (response.data && response.data.tour && response.data.tour.id) {
+      goToCheckpoint(response.data.tour.id);
     }
+    // if (response.data && response.data.tour && response.data.tour.id) { //POTRENCIJALNO?
+    //   goToCheckpoint(response.data.tour.id);
   } catch (err) {
     addError.value = err?.response?.data?.message || 'Failed to add tour.';
   }
@@ -140,10 +199,27 @@ const fetchTours = async () => {
   loading.value = true;
   try {
     const jwt = localStorage.getItem('token');
-    const response = await axios.get(`http://localhost:8082/api/tours`, {
+    const userInfo = AuthService.decode(jwt);
+    const userRole = userInfo?.userRole || 'Guide'; // Assume Guide role for Tours component
+    
+    // gRPC call via gateway-net - NEW 
+    const response = await axios.get(`http://localhost:8084/api/tours?user_id=${userInfo?.id || ''}&auth_token=${jwt}`, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-    tours.value = response.data.value;
+    
+    // RPC call - OLD (using gateway)
+    // const response = await axios.get(`http://localhost:3000/api/rpc/tours/rpc`, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    // REST call - BACKUP (commented)
+    // const response = await axios.get(`http://localhost:8082/api/tours`, {
+    // const response = await axios.get(`http://localhost:3001/api/tours`, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    tours.value = response.data?.value || response.data?.tours || [];
+    // tours.value = response.data.tours || response.data.value || []; //POTRENCIJALNO?
     error.value = '';
   } catch (err) {
     error.value = 'Failed to load tours.';
@@ -155,8 +231,6 @@ const fetchTours = async () => {
 const goToCheckpoint = (tourId) => {
   router.push({ path: '/map-checkpoint', query: { tourId } });
 };
-
-onMounted(fetchTours);
 </script>
 
 <style scoped>
