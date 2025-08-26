@@ -3,7 +3,7 @@ using MediatR;
 using blogs_service.src.Blogs.BuildingBlocks.Core.Domain;
 using blogs_service.src.Blogs.Application.Domain;
 
-namespace blogs_service.src.Blogs.Application.Features.LikeBlog
+namespace blogs_service.src.Blogs.Application.Features.DislikeBlog
 {
     public class DislikeBlogHandler(IDocumentDatabaseContext documentDatabaseContext) : IRequestHandler<DislikeBlogCommand, Result<bool>>
     {

@@ -1,7 +1,9 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h2>Join us</h2>
+  <div>
+    <Navbar />
+    <div class="auth-container">
+      <div class="auth-card">
+        <h2>Join us</h2>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="name">First Name</label>
@@ -99,13 +101,13 @@
           <router-link to="/">← Back to Home</router-link>
         </p>
       </div>
+      </div>
     </div>
   </div>
-</template>
-
-<script setup>
+</template><script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Navbar from './Navbar.vue'
 import { AuthService } from '../services/auth_service.js'
 import axios from 'axios'
 

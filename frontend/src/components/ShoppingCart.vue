@@ -8,7 +8,7 @@
         <span class="cart-title">Shopping Cart</span>
         <button class="close-btn" @click="showCart = false">×</button>
       </div>
-      <div v-if="!cartItems.orderItems || cartItems.orderItems.length === 0" class="cart-empty">Korpa je prazna</div>
+      <div v-if="!cartItems.orderItems || cartItems.orderItems.length === 0" class="cart-empty">Cart is empty</div>
       <div v-else>
         <div v-for="item in cartItems.orderItems || []" :key="item.id" class="cart-item">
           <span class="cart-item-title">{{ item.tourName }}</span>
@@ -16,12 +16,12 @@
           <button class="remove-btn" @click="removeFromCart(item.id)">🗑️</button>
         </div>
         <div class="cart-total">
-          <span>Ukupno:</span>
+          <span>Total:</span>
           <span class="cart-total-price">{{ totalPrice }} €</span>
         </div>
       </div>
       <div class="cart-actions">
-        <button @click="showCart = false">Nastavi kupovinu</button>
+        <button @click="showCart = false">Continue Shopping</button>
         <button :disabled="cartItems.orderItems.length === 0" @click="checkout">Checkout</button>
       </div>
     </div>
@@ -59,17 +59,17 @@ async function fetchCart() {
 async function removeFromCart(orderItemId) {
   const jwt = localStorage.getItem('token');
   try {
-    console.log(`Pokušavam da obrišem item sa ID: ${orderItemId}`);
+    console.log(`Attempting to delete item with ID: ${orderItemId}`);
     const response = await axios.delete(`${API_URL}/deletetourtocart/${orderItemId}`, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-    console.log('Item obrisan uspešno:', response.data);
+    console.log('Item deleted successfully:', response.data);
     
     await fetchCart();
-    console.log('Cart osvežen nakon brisanja');
+    console.log('Cart refreshed after deletion');
   } catch (err) {
-    console.error('Greška pri brisanju itema iz korpe:', err);
-    alert('Brisanje itema nije uspelo!');
+    console.error('Error deleting item from cart:', err);
+    alert('Item deletion failed!');
   }
 }
 
@@ -86,7 +86,7 @@ async function checkout() {
     await fetchCart();
     showCart.value = false;
   } catch (err) {
-    alert('Kupovina nije uspela!');
+    alert('Purchase failed!');
   }
 }
 
@@ -102,7 +102,7 @@ onMounted(() => {
 <style scoped>
   .shopping-cart {
     position: fixed;
-    bottom: 40rem;
+    top: 5rem;
     right: 1rem;
     z-index: 1000;
   }

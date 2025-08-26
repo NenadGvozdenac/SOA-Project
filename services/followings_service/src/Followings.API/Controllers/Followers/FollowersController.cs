@@ -3,6 +3,7 @@ using followings_service.src.Followings.Application.Features.Followers.GetFollow
 using followings_service.src.Followings.Application.Features.Followers.GetMyFollowers;
 using followings_service.src.Followings.Application.Features.Followers.GetMyFollowings;
 using followings_service.src.Followings.Application.Features.Followers.UnfollowUser;
+using followings_service.src.Followings.Application.Features.Followers.GetBlogsFromFollowedUsers;
 using followings_service.src.Followings.BuildingBlocks.Core.Domain;
 using followings_service.src.Followings.BuildingBlocks.Infrastructure;
 using followings_service.src.Followings.BuildingBlocks.Infrastructure.Database;
@@ -50,6 +51,13 @@ public class FollowersController(IMediator mediator) : BaseController
     public async Task<Result> GetSuggestions()
     {
         var result = await mediator.Send(new GetFollowSuggestionsQuery(this.GetUser()));
+        return result;
+    }
+
+    [HttpGet("blogs")]
+    public async Task<Result> GetBlogsFromFollowedUsers()
+    {
+        var result = await mediator.Send(new GetBlogsFromFollowedUsersQuery(this.GetUser()));
         return result;
     }
 }

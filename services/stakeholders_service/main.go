@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"soa-project/stakeholders-service/config"
+	"soa-project/stakeholders-service/internal/app/middleware"
 	"soa-project/stakeholders-service/internal/app/utils/logger"
 	"soa-project/stakeholders-service/routes"
 	"sync"
@@ -28,6 +30,10 @@ func startServer() error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
+	// Add middleware
+	router.Use(middleware.TracingMiddleware())
+	router.Use(middleware.PrometheusMiddleware())
+
 	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
@@ -43,7 +49,7 @@ func startServer() error {
 		AllowCredentials: true,
 	}))
 
-	// Set up routes
+	// Set up routes (includes metrics endpoint)
 	routes.SetupRoutes(router)
 
 	logger.Info("Starting server on port 8080")
@@ -77,6 +83,15 @@ func endApplication(errChan chan error) {
 }
 
 func main() {
+	// Initialize Jaeger tracer
+	_, closer, err := middleware.InitJaeger("stakeholders-service")
+	if err != nil {
+		log.Printf("Could not initialize jaeger tracer: %s", err.Error())
+	} else {
+		defer closer.Close()
+		logger.Info("Jaeger tracer initialized successfully")
+	}
+
 	var wg sync.WaitGroup
 
 	// Use a channel to capture errors from goroutines

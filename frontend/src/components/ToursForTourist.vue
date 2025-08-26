@@ -10,7 +10,7 @@
         <p><strong>Description:</strong> {{ tour.description }}</p>
         <p><strong>Difficulty:</strong> {{ difficultyLabels[tour.difficulty] || 'Unknown' }}</p>
         <p><strong>Price:</strong> {{ tour.price }} €</p>
-        <div v-if="tour.tags && tour.tags.length">
+        <div v-if="tour.tags && Array.isArray(tour.tags) && tour.tags.length > 0">
           <strong>Tags:</strong>
           <span v-for="tag in tour.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
@@ -29,8 +29,8 @@
         <button 
           v-if="!tour.isArchived && !isTourPurchased(tour.id)" 
           @click="addToCart(tour)"
-        >Dodaj u korpu</button>
-        <span v-if="isTourPurchased(tour.id)" class="purchased-label">Kupljeno</span>
+        >Add to Cart</button>
+        <span v-if="isTourPurchased(tour.id)" class="purchased-label">Purchased</span>
       </div>
     </div>
     <div v-else-if="!loading && !error" class="no-tours">No published tours found.</div>
@@ -40,6 +40,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { AuthService } from '../services/auth_service.js';
 // Use native event for cart open
 import TourReviews from './TourReviews.vue';
 const tours = ref([]);
@@ -109,10 +110,30 @@ async function addToCart(tour) {
 onMounted(async () => {
   try {
     const jwt = localStorage.getItem('token');
-    const response = await axios.get('http://localhost:8082/api/tours', {
+    const userInfo = AuthService.decode(jwt);
+    const userRole = userInfo?.userRole || 'Tourist'; // Default to Tourist for this component
+    
+    // gRPC call via gateway-net - NEW 
+    const response = await axios.get(`http://localhost:8084/api/tours?user_id=${userInfo?.id || ''}&auth_token=${jwt}`, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-    tours.value = (response.data.value || []).filter(t => t.status === 1 || t.status === 'Published');
+    
+    // RPC call - OLD (using gateway)
+    // const response = await axios.get(`http://localhost:3001/api/rpc/tours/rpc?role=${userRole}`, {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    // REST call - BACKUP (commented)
+    // const response = await axios.get('http://localhost:8082/api/tours', {
+    // const response = await axios.get('http://localhost:3001/api/tours', {
+    //   headers: { Authorization: `Bearer ${jwt}` }
+    // });
+    
+    //tours.value = response.data.value || [];
+    tours.value = response.data.tours || []; //POTRENCIJALNO?
+    // Note: RPC already filters for published tours based on Tourist role
+    // No need for additional filtering like: .filter(t => t.status === 1 || t.status === 'Published')
+    
     for (const tour of tours.value) {
       try {
         const cpRes = await axios.get(`http://localhost:8082/api/tours/checkpoints/${tour.id}`, {
