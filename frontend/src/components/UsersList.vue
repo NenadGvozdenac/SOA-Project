@@ -56,6 +56,7 @@
                                     <th>Email</th>
                                     <th>Role</th>
                                     <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -77,7 +78,20 @@
                                         </span>
                                     </td>
                                     <td class="status">
-                                        <span class="status-active">Active</span>
+                                        <span :class="user.blocked ? 'status-blocked' : 'status-active'">
+                                            {{ user.blocked ? 'Blocked' : 'Active' }}
+                                        </span>
+                                    </td>
+                                    <td class="actions">
+                                        <button 
+                                            v-if="user.role_id !== 0" 
+                                            @click="toggleBlockUser(user)"
+                                            :class="user.blocked ? 'btn btn-success btn-sm' : 'btn btn-danger btn-sm'"
+                                            :disabled="isBlockingUser === user.ID"
+                                        >
+                                            {{ isBlockingUser === user.ID ? 'Processing...' : (user.blocked ? 'Unblock' : 'Block') }}
+                                        </button>
+                                        <span v-else class="admin-label">Admin</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -101,12 +115,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { STAKEHOLDERS_URL } from '../services/const_service.js'
+import { StakeholdersService } from '../services/stakeholders_service.js'
 
 const router = useRouter()
 const users = ref([])
 const isLoading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
+const isBlockingUser = ref(null)
 
 const filteredUsers = computed(() => {
     if (!searchQuery.value) return users.value
@@ -175,6 +191,33 @@ const handleLogout = () => {
 
 const isLoggedIn = () => {
   return localStorage.getItem('token') !== null;
+}
+
+const toggleBlockUser = async (user) => {
+    const action = user.blocked ? 'unblock' : 'block'
+    
+    if (!confirm(`Are you sure you want to ${action} user ${user.name} ${user.surname}?`)) {
+        return
+    }
+
+    isBlockingUser.value = user.ID
+    
+    try {
+        await StakeholdersService.blockUser(user.ID, !user.blocked)
+        
+        // Update the user's blocked status in the local array
+        const userIndex = users.value.findIndex(u => u.ID === user.ID)
+        if (userIndex !== -1) {
+            users.value[userIndex].blocked = !user.blocked
+        }
+        
+        alert(`User ${user.name} ${user.surname} has been ${action}ed successfully`)
+    } catch (err) {
+        console.error(`Error ${action}ing user:`, err)
+        alert(`Failed to ${action} user: ${err.response?.data?.message || err.message}`)
+    } finally {
+        isBlockingUser.value = null
+    }
 }
 
 onMounted(() => {
@@ -369,5 +412,54 @@ onMounted(() => {
 .status-active {
     color: #28a745;
     font-weight: 500;
+}
+
+.status-blocked {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.actions {
+    text-align: center;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    min-width: 70px;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-label {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.875rem;
 }
 </style>

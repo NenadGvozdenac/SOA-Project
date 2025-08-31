@@ -50,4 +50,24 @@ export class StakeholdersService {
             throw error;
         }
     }
+
+    static async blockUser(userId, blocked) {
+        try {
+            const jwt = localStorage.getItem('token');
+            const response = await axios.put(`${STAKEHOLDERS_URL}/users/${userId}/block`, 
+                { blocked }, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${jwt}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error("Error blocking/unblocking user:", error);
+            throw error;
+        }
+    }
 }

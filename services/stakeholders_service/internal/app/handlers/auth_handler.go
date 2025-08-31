@@ -68,6 +68,12 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Check if user is blocked
+	if user.Blocked {
+		utils.CreateGinResponse(c, "Your account has been blocked. Please contact administrator.", http.StatusForbidden, nil)
+		return
+	}
+
 	// Compare passwords
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
 		utils.CreateGinResponse(c, "Invalid email or password", http.StatusUnauthorized, nil)
