@@ -76,3 +76,12 @@ func (repo *UserRepository) UpdateByID(id uint, user *models.User) error {
 	}
 	return nil
 }
+
+// UpdateBlockedStatus updates only the blocked status of a user
+func (repo *UserRepository) UpdateBlockedStatus(id uint, blocked bool) error {
+	result := config.DB.Model(&models.User{}).Where("id = ?", id).Update("blocked", blocked)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

@@ -190,3 +190,56 @@ func GetUsersByIds(c *gin.Context) {
 
 	utils.CreateGinResponse(c, "Users retrieved successfully", http.StatusOK, userDetails)
 }
+
+// BlockUser blocks or unblocks a user (admin only)
+func BlockUser(c *gin.Context) {
+	_, _, userRole, _ := utils.ExtractDataFromContext(c)
+
+	if userRole != "Admin" {
+		utils.CreateGinResponse(c, "Unauthorized access", http.StatusForbidden, nil)
+		return
+	}
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.CreateGinResponse(c, "Invalid user ID", http.StatusBadRequest, nil)
+		return
+	}
+
+	var blockRequest struct {
+		Blocked bool `json:"blocked"`
+	}
+
+	if err := c.ShouldBindJSON(&blockRequest); err != nil {
+		utils.CreateGinResponse(c, "Invalid request body", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Get user from the database
+	user, err := repositories.NewUserRepository().GetByID(uint(id))
+	if err != nil || user == nil {
+		utils.CreateGinResponse(c, "User not found", http.StatusNotFound, nil)
+		return
+	}
+
+	// Don't allow blocking admin users
+	if user.RoleId == 0 { // Assuming 0 is admin role
+		utils.CreateGinResponse(c, "Cannot block admin users", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Update the blocked status
+	err = repositories.NewUserRepository().UpdateBlockedStatus(uint(id), blockRequest.Blocked)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to update user block status", http.StatusInternalServerError, nil)
+		return
+	}
+
+	action := "blocked"
+	if !blockRequest.Blocked {
+		action = "unblocked"
+	}
+
+	utils.CreateGinResponse(c, "User "+action+" successfully", http.StatusOK, nil)
+}

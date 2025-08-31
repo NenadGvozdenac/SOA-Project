@@ -10,4 +10,5 @@ type UserRepositoryInterface interface {
 	GetByIDs(ids []uint) (*[]models.User, error)
 	DeleteByID(id uint) error
 	UpdateByID(id uint, user *models.User) error
+	UpdateBlockedStatus(id uint, blocked bool) error
 }

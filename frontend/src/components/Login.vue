@@ -85,7 +85,11 @@ const handleLogin = async () => {
     // Login successful, redirect to home
     router.push('/')
   } catch (err) {
-    error.value = err.message || 'Login failed. Please check your credentials.'
+    if (err.response?.status === 403) {
+      error.value = err.response.data.message || 'Your account has been blocked. Please contact administrator.'
+    } else {
+      error.value = err.message || 'Login failed. Please check your credentials.'
+    }
   } finally {
     isLoading.value = false
   }
