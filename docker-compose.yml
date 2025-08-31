@@ -1,12 +1,37 @@
+# Development Docker Compose Configuration
+#
+# This configuration includes all services needed for development.
+# 
+# Usage:
+#   - Default services (without monitoring): docker compose -f docker-compose.dev.yml up -d
+#   - With monitoring services: docker compose -f docker-compose.dev.yml --profile monitoring up -d
+#
+# Monitoring Services (available with --profile monitoring):
+#   - Prometheus (metrics): http://localhost:9091
+#   - Grafana (dashboards): http://localhost:3000 (admin/admin)
+#   - Elasticsearch (logs): http://localhost:9200
+#   - Kibana (log visualization): http://localhost:5601
+#   - Node Exporter (host metrics): http://localhost:9100
+#   - cAdvisor (container metrics): http://localhost:8086
+#
+# Always available services:
+#   - Jaeger (tracing): http://localhost:16686
+#   - API Gateway: http://localhost:3001
+#   - .NET Gateway: http://localhost:8084
+#   - Frontend: http://localhost:5173
+
 services:
   api_gateway:
     build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    container_name: api_gateway
+      context: .
+      dockerfile: ./gateway/Dockerfile.dev
+    container_name: api_gateway_dev
     restart: always
     ports:
       - "3001:3000"
+    volumes:
+      - ./gateway:/app
+      - /app/node_modules
     depends_on:
       stakeholders_service:
         condition: service_healthy
@@ -17,19 +42,69 @@ services:
       followings_service:
         condition: service_healthy
     environment:
+      NODE_ENV: development
+      PORT: 3000
       BLOGS_SERVICE_URL: http://blogs_service:8081
       FOLLOWINGS_SERVICE_URL: http://followings_service:9090
       STAKEHOLDERS_SERVICE_URL: http://stakeholders_service:8080
       TOURS_SERVICE_URL: http://tours_service:8082
-      NODE_ENV: development
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 1000
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3001
+      LOG_LEVEL: debug
+    command: npm run dev
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=gateway"
+        labels: "service=gateway-dev"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - soa_network
+
+  gateway_net:
+    build:
+      context: ./gateway-net
+      dockerfile: Dockerfile
+    container_name: gateway_net_dev
+    restart: always
+    ports:
+      - "8084:8084"
+    depends_on:
+      stakeholders_service:
+        condition: service_healthy
+      blogs_service:
+        condition: service_healthy
+      tours_service:
+        condition: service_healthy
+      followings_service:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8084
+      BLOGS_SERVICE_URL: http://blogs_service:8081
+      FOLLOWINGS_SERVICE_URL: http://followings_service:9090
+      STAKEHOLDERS_SERVICE_URL: http://stakeholders_service:8080
+      TOURS_SERVICE_URL: http://tours_service:8083
+      #TOURS_SERVICE_URL: http://tours_service:8082
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_AGENT_PORT: 6831
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=gateway-net-dev"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -114,12 +189,13 @@ services:
 
   tours_service: # dotnet ef migrations add InitialCreate - u terminali za tours_service
     build:       # dotnet ef database update - mozda?
-      context: ./services/tours_service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/tours_service/Dockerfile
     container_name: tours_service
     restart: always
     ports:
-      - "8082:8082"
+      - "8082:8082"  # HTTP API
+      - "8083:8083"  # gRPC
     depends_on:
       - postgres_tours_db
       - jaeger
@@ -130,7 +206,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tours_db
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8082
+      #ASPNETCORE_URLS: http://+:8082;http://+:8083
       JAEGER_AGENT_HOST: jaeger
       JAEGER_AGENT_PORT: 6831
       JAEGER_SAMPLER_TYPE: const
@@ -189,7 +265,7 @@ services:
     restart: always
     container_name: followings_service
     ports:
-      - "8083:9090"
+      - "9090:9090"
     depends_on:
       neo4j:
         condition: service_started
@@ -267,6 +343,7 @@ services:
       - /app/node_modules # Prevent overwriting node_modules
     environment:
       VITE_API_URL: http://localhost:3001/api
+      VITE_GATEWAY_NET_URL: http://localhost:8084/api
       VITE_STAKEHOLDERS_URL: http://localhost:3001/api/stakeholders
       VITE_BLOGS_URL: http://localhost:3001/api/blogs
       VITE_FOLLOWINGS_URL: http://localhost:3001/api/followings
@@ -276,11 +353,7 @@ services:
     networks:
       - soa_network
 
-  # ===============================================
-  # MONITORING, LOGGING & TRACING INFRASTRUCTURE
-  # ===============================================
-  
-  # Jaeger - Distributed Tracing
+  # Jaeger - potreban jer servisi imaju hardkodovanu Jaeger konfiguraciju
   jaeger:
     image: jaegertracing/all-in-one:1.47
     container_name: jaeger
@@ -296,12 +369,16 @@ services:
     networks:
       - soa_network
 
+  # ===============================================
+  # MONITORING, LOGGING & TRACING INFRASTRUCTURE
+  # ===============================================
+
   # Prometheus - Metrics Collection
   prometheus:
     image: prom/prometheus:v2.44.0
     container_name: prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -315,6 +392,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # Node Exporter - Host System Metrics (CPU, RAM, Disk, Network)
   # Note: For Windows Docker Desktop, using regular network mode instead of host
@@ -341,6 +420,8 @@ services:
       - '--collector.loadavg'
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # cAdvisor - Docker Container Metrics (CPU, RAM, Disk, Network per container)
   cadvisor:
@@ -348,7 +429,7 @@ services:
     container_name: cadvisor
     restart: unless-stopped
     ports:
-      - "8084:8080"
+      - "8086:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -364,6 +445,8 @@ services:
       - '--store_container_labels=false'
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # Grafana - Metrics Visualization
   grafana:
@@ -385,6 +468,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # ===============================================
   # ELK STACK - CENTRALIZED LOGGING
@@ -407,6 +492,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # Logstash - Log Processing
   logstash:
@@ -425,6 +512,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # Kibana - Log Visualization
   kibana:
@@ -440,6 +529,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
   # Filebeat - Log Shipping
   filebeat:
@@ -455,6 +546,8 @@ services:
     restart: unless-stopped
     networks:
       - soa_network
+    profiles:
+      - monitoring
 
 volumes:
   postgres_data:
@@ -473,6 +566,7 @@ volumes:
     driver: local
   elasticsearch_data:
     driver: local
+
 networks:
   soa_network:
     driver: bridge

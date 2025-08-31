@@ -1,3 +1,25 @@
+# Development Docker Compose Configuration
+#
+# This configuration includes all services needed for development.
+# 
+# Usage:
+#   - Default services (without monitoring): docker compose -f docker-compose.dev.yml up -d
+#   - With monitoring services: docker compose -f docker-compose.dev.yml --profile monitoring up -d
+#
+# Monitoring Services (available with --profile monitoring):
+#   - Prometheus (metrics): http://localhost:9091
+#   - Grafana (dashboards): http://localhost:3000 (admin/admin)
+#   - Elasticsearch (logs): http://localhost:9200
+#   - Kibana (log visualization): http://localhost:5601
+#   - Node Exporter (host metrics): http://localhost:9100
+#   - cAdvisor (container metrics): http://localhost:8086
+#
+# Always available services:
+#   - Jaeger (tracing): http://localhost:16686
+#   - API Gateway: http://localhost:3001
+#   - .NET Gateway: http://localhost:8084
+#   - Frontend: http://localhost:5173
+
 services:
   api_gateway:
     build:
@@ -43,6 +65,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   gateway_net:
     build:
@@ -85,6 +109,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   stakeholders_service:
     build:
@@ -120,6 +146,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   blogs_service:
     build:
@@ -156,6 +184,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   tours_service: # dotnet ef migrations add InitialCreate - u terminali za tours_service
     build:       # dotnet ef database update - mozda?
@@ -193,6 +223,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   postgres_db:
     container_name: postgres_db
@@ -207,6 +239,8 @@ services:
     ports:
       - "5432:5432"
     attach: false
+    networks:
+      - soa_network
     
   postgres_tours_db:
     container_name: postgres_tours_db
@@ -221,6 +255,8 @@ services:
     ports:
       - "5433:5432"
     attach: false
+    networks:
+      - soa_network
 
   followings_service:
     build:
@@ -259,6 +295,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - soa_network
 
   neo4j:
     container_name: neo4j_db
@@ -273,6 +311,8 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     attach: false
+    networks:
+      - soa_network
   
   mongo_db:
     container_name: mongo_db
@@ -289,6 +329,8 @@ services:
     ports:
       - "27017:27017"
     attach: false
+    networks:
+      - soa_network
   
   frontend-app:
     build:
@@ -308,6 +350,8 @@ services:
       VITE_TOURS_URL: http://localhost:3001/api/tours
     depends_on:
       - api_gateway
+    networks:
+      - soa_network
 
   # Jaeger - potreban jer servisi imaju hardkodovanu Jaeger konfiguraciju
   jaeger:
@@ -322,6 +366,188 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
     restart: unless-stopped
+    networks:
+      - soa_network
+
+  # ===============================================
+  # MONITORING, LOGGING & TRACING INFRASTRUCTURE
+  # ===============================================
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # Node Exporter - Host System Metrics (CPU, RAM, Disk, Network)
+  # Note: For Windows Docker Desktop, using regular network mode instead of host
+  node_exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: node_exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'  
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.cpu'
+      - '--collector.meminfo'
+      - '--collector.diskstats'
+      - '--collector.filesystem'
+      - '--collector.netdev'
+      - '--collector.loadavg'
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # cAdvisor - Docker Container Metrics (CPU, RAM, Disk, Network per container)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8086:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    command:
+      - '--housekeeping_interval=10s'
+      - '--docker_only=true'
+      - '--store_container_labels=false'
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # Grafana - Metrics Visualization
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # ===============================================
+  # ELK STACK - CENTRALIZED LOGGING
+  # ===============================================
+  
+  # Elasticsearch - Log Storage
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # Logstash - Log Processing
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    environment:
+      - LS_JAVA_OPTS=-Xmx512m -Xms512m
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # Kibana - Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
+
+  # Filebeat - Log Shipping
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.8.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./monitoring/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - logstash
+    restart: unless-stopped
+    networks:
+      - soa_network
+    profiles:
+      - monitoring
 
 volumes:
   postgres_data:
@@ -334,3 +560,13 @@ volumes:
     driver: local
   mongo_data:
     driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  soa_network:
+    driver: bridge
