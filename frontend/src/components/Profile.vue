@@ -20,6 +20,44 @@
         <div class="form-section">
           <h2>Personal Information</h2>
           
+          <div class="form-group profile-picture-section">
+            <label>Profile Picture</label>
+            <div class="profile-picture-container">
+              <div class="profile-picture-preview">
+                <img 
+                  v-if="profilePictureUrl" 
+                  :src="profilePictureUrl" 
+                  alt="Profile Picture" 
+                  class="profile-image"
+                />
+                <div v-else class="profile-placeholder">
+                  <i class="fas fa-user"></i>
+                </div>
+              </div>
+              <div class="profile-picture-actions">
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  @change="handleFileSelect" 
+                  accept="image/*" 
+                  class="file-input"
+                  id="profilePicture"
+                />
+                <label for="profilePicture" class="btn btn-secondary">
+                  Choose Picture
+                </label>
+                <button 
+                  v-if="profilePictureUrl" 
+                  type="button" 
+                  @click="removeProfilePicture" 
+                  class="btn btn-danger"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+          
           <div class="form-row">
             <div class="form-group">
               <label for="name">First Name</label>
@@ -153,6 +191,8 @@ export default {
       loading: false,
       error: null,
       success: null,
+      profilePictureUrl: null,
+      profilePictureFile: null,
       profileData: {
         name: '',
         surname: '',
@@ -160,6 +200,7 @@ export default {
         username: '',
         biography: '',
         motto: '',
+        profilePicture: '',
         oldPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -190,6 +231,11 @@ export default {
             this.profileData.username = userData.username || userData.email || '';
             this.profileData.biography = userData.biography || '';
             this.profileData.motto = userData.moto || '';  // Note: backend returns 'moto' not 'motto'
+            
+            // Handle profile picture
+            if (userData.profilePicture) {
+              this.profilePictureUrl = `data:image/jpeg;base64,${userData.profilePicture}`;
+            }
           }
         } catch (apiError) {
           console.warn('Could not fetch user data from API, using localStorage:', apiError);
@@ -246,8 +292,31 @@ export default {
           email: this.profileData.email,
           username: this.profileData.username,
           biography: this.profileData.biography,
-          motto: this.profileData.motto  // Note: backend expects 'moto' not 'motto'
+          motto: this.profileData.motto,  // Keep as motto for consistency
+          profilePicture: ''
         };
+
+        // Handle profile picture if a new file was selected
+        if (this.profilePictureFile) {
+          try {
+            const base64Data = await this.convertFileToBase64(this.profilePictureFile);
+            requestData.profilePicture = base64Data;
+            console.log('Profile picture data length:', base64Data.length);
+            console.log('Profile picture preview:', base64Data.substring(0, 50) + '...');
+            console.log('Sending profile picture with request');
+          } catch (error) {
+            console.error('Error converting file to base64:', error);
+            this.error = 'Failed to process image file';
+            return;
+          }
+        } else {
+          console.log('No new profile picture file selected, not sending profile picture data');
+        }
+
+        console.log('Sending request data:', {
+          ...requestData,
+          profilePicture: requestData.profilePicture ? `${requestData.profilePicture.substring(0, 50)}... (${requestData.profilePicture.length} chars)` : 'empty'
+        });
 
         // Only add password fields if user wants to change password
         if (this.profileData.newPassword) {
@@ -289,6 +358,59 @@ export default {
 
     cancelEdit() {
       this.$router.push('/');
+    },
+
+    handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        this.error = 'Please select a valid image file';
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.error = 'Image file size must be less than 5MB';
+        return;
+      }
+
+      this.profilePictureFile = file;
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.profilePictureUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // Clear any previous errors
+      this.error = null;
+    },
+
+    removeProfilePicture() {
+      this.profilePictureUrl = null;
+      this.profilePictureFile = null;
+      this.profileData.profilePicture = '';
+      
+      // Clear the file input
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.value = '';
+      }
+    },
+
+    async convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          // Remove the data URL prefix (data:image/jpeg;base64,)
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
     }
   }
 };
@@ -412,6 +534,66 @@ h1 {
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
+}
+
+/* Profile Picture Styles */
+.profile-picture-section {
+  margin-bottom: 30px;
+}
+
+.profile-picture-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.profile-picture-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e5e7eb;
+  background-color: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-placeholder {
+  color: #9ca3af;
+  font-size: 3rem;
+}
+
+.profile-picture-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.file-input {
+  display: none;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 .form-actions {

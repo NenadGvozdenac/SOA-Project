@@ -28,6 +28,7 @@ type UserUpdateDTO struct {
 	Username        string `json:"username"`
 	Biography       string `json:"biography"`
 	Moto            string `json:"motto"`
+	ProfilePicture  string `json:"profilePicture"` // Base64 encoded image
 	OldPassword     string `json:"oldPassword"`
 	NewPassword     string `json:"newPassword"`
 	ConfirmPassword string `json:"confirmPassword"`
