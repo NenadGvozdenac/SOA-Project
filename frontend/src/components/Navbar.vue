@@ -11,6 +11,10 @@
           <i class="icon">👤</i>
           My Profile
         </router-link>
+        <router-link to="/users" class="nav-link" v-if="isLoggedIn() && getUserRole() === 'Admin'">
+          <i class="icon">📊</i>
+          Dashboard
+        </router-link>
         <router-link to="/position-simulator" class="nav-link" v-if="isLoggedIn() && getUserRole() === 'Tourist'">
           <i class="icon">📍</i>
           Position Simulator
