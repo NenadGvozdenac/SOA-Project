@@ -11,6 +11,8 @@ namespace tours_service.src.Tours.Infrastructure.Database
     public DbSet<ShoppingCart> ShoppingCarts { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<TourPurchaseToken> TourPurchaseTokens { get; set; }
+    public DbSet<TourExecution> TourExecutions { get; set; }
+    public DbSet<CheckpointProgress> CheckpointProgresses { get; set; }
     public ToursContext(DbContextOptions<ToursContext> options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +64,25 @@ namespace tours_service.src.Tours.Infrastructure.Database
       modelBuilder.Entity<TourPurchaseToken>()
           .Property(tt => tt.UserId)
           .IsRequired();
+
+      // Tour Execution relationships
+      modelBuilder.Entity<TourExecution>()
+          .HasOne<Tour>()
+          .WithMany()
+          .HasForeignKey(te => te.TourId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+      modelBuilder.Entity<TourExecution>()
+          .HasMany(te => te.CheckpointProgresses)
+          .WithOne()
+          .HasForeignKey("TourExecutionId")
+          .OnDelete(DeleteBehavior.Cascade);
+
+      modelBuilder.Entity<CheckpointProgress>()
+          .HasOne<Checkpoint>()
+          .WithMany()
+          .HasForeignKey(cp => cp.CheckpointId)
+          .OnDelete(DeleteBehavior.Cascade);
     }
   }
 }

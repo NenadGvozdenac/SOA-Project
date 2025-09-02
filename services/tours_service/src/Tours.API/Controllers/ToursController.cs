@@ -21,6 +21,9 @@ using tours_service.src.Tours.Application.Features.GetToursFromCart;
 using tours_service.src.Tours.Application.Features.BuyingTours;
 using tours_service.src.Tours.Application.Features.GetTourReviews;
 using tours_service.src.Tours.Application.Features.GetBoughtTours;
+using tours_service.src.Tours.Application.Features.StartTourExecution;
+using tours_service.src.Tours.Application.Features.CheckCheckpointProximity;
+using tours_service.src.Tours.Application.Features.CompleteTourExecution;
 
 namespace tours_service.src.Tours.API.Controllers;
 
@@ -160,6 +163,31 @@ public class ToursController(IMediator _mediator) : BaseController
     public async Task<IActionResult> GetBoughtTours()
     {
         var result = await _mediator.Send(new GetBoughtToursQuery(this.GetUser()));
+        return CreateResponse(result);
+    }
+
+    // Tour Execution endpoints
+    [HttpPost]
+    [Route("execution/start")]
+    public async Task<IActionResult> StartTourExecution([FromBody] StartTourRequestDTO startTourRequestDTO)
+    {
+        var result = await _mediator.Send(new StartTourExecutionCommand(this.GetUser(), startTourRequestDTO));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("execution/checkproximity")]
+    public async Task<IActionResult> CheckCheckpointProximity([FromBody] CheckProximityRequestDTO checkProximityRequestDTO)
+    {
+        var result = await _mediator.Send(new CheckCheckpointProximityCommand(this.GetUser(), checkProximityRequestDTO));
+        return CreateResponse(result);
+    }
+
+    [HttpPost]
+    [Route("execution/complete")]
+    public async Task<IActionResult> CompleteTourExecution([FromBody] CompleteTourRequestDTO completeTourRequestDTO)
+    {
+        var result = await _mediator.Send(new CompleteTourExecutionCommand(this.GetUser(), completeTourRequestDTO));
         return CreateResponse(result);
     }
 }

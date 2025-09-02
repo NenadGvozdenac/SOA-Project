@@ -11,6 +11,20 @@
           <i class="icon">👤</i>
           My Profile
         </router-link>
+        <router-link to="/position-simulator" class="nav-link" v-if="isLoggedIn() && getUserRole() === 'Tourist'">
+          <i class="icon">📍</i>
+          Position Simulator
+        </router-link>
+        <router-link to="/active-tour" class="nav-link" v-if="isLoggedIn() && getUserRole() === 'Tourist'">
+          <i class="icon">🚶</i>
+          Active Tour
+        </router-link>
+        <router-link to="/tours-for-tourist" class="nav-link" v-if="isLoggedIn() && getUserRole() === 'Tourist'">
+          <i class="icon">🗺️</i>
+          Tours
+        </router-link>
+        <!-- Shopping Cart for Tourists -->
+        <ShoppingCart v-if="isLoggedIn() && getUserRole() === 'Tourist'" />
         <button class="btn btn-secondary" v-if="isLoggedIn()" @click="handleLogout">
           <i class="icon">🚪</i>
           Logout
@@ -25,8 +39,14 @@
 </template>
 
 <script setup>
+import ShoppingCart from './ShoppingCart.vue';
+
 const isLoggedIn = () => {
   return localStorage.getItem('token') !== null;
+}
+
+const getUserRole = () => {
+  return localStorage.getItem('userRole');
 }
 
 const handleLogout = () => {

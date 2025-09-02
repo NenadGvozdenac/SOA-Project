@@ -1,7 +1,7 @@
 <template>
-  <div class="shopping-cart">
+  <div class="shopping-cart-navbar">
     <button class="cart-button" @click="showCart = !showCart">
-      🛒 <span v-if="cartItems.length > 0" class="cart-badge">{{ cartItems.length }}</span>
+      🛒 <span v-if="cartItems.orderItems && cartItems.orderItems.length > 0" class="cart-badge">{{ cartItems.orderItems.length }}</span>
     </button>
     <div v-if="showCart" class="cart-content">
       <div class="cart-header">
@@ -22,7 +22,7 @@
       </div>
       <div class="cart-actions">
         <button @click="showCart = false">Continue Shopping</button>
-        <button :disabled="cartItems.orderItems.length === 0" @click="checkout">Checkout</button>
+        <button :disabled="!cartItems.orderItems || cartItems.orderItems.length === 0" @click="checkout">Checkout</button>
       </div>
     </div>
   </div>
@@ -49,8 +49,13 @@ async function fetchCart() {
     cartItems.value = response.data.value || { orderItems: [] };
 
     // racunamo ukupnu cenu preko orderItems
-    totalPrice.value = cartItems.value.orderItems.reduce((sum, item) => sum + item.price, 0);
+    if (cartItems.value.orderItems && Array.isArray(cartItems.value.orderItems)) {
+      totalPrice.value = cartItems.value.orderItems.reduce((sum, item) => sum + item.price, 0);
+    } else {
+      totalPrice.value = 0;
+    }
   } catch (err) {
+    console.error('Error fetching cart:', err);
     cartItems.value = { orderItems: [] };
     totalPrice.value = 0;
   }
@@ -77,21 +82,46 @@ async function removeFromCart(orderItemId) {
 async function checkout() {
   const jwt = localStorage.getItem('token');
   try {
-    await axios.post(`${API_URL}/buytours`, cartItems.value.orderItems || [], {
+    // Prepare data in the format expected by backend (OrderItemFromCartDTO)
+    const orderItemsForPurchase = cartItems.value.orderItems.map(item => ({
+      id: item.id,
+      shoppingCartId: cartItems.value.id,
+      tourId: item.tourId,
+      price: item.price
+    }));
+
+    console.log('Sending checkout data:', orderItemsForPurchase);
+
+    const response = await axios.post(`${API_URL}/buytours`, orderItemsForPurchase, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${jwt}`
       }
     });
-    await fetchCart();
+
+    console.log('Purchase successful:', response.data);
+    alert('Purchase successful! You now own these tours and can start them from the Tours page.');
+    
+    // Trigger events to refresh other components
+    window.dispatchEvent(new CustomEvent('cart-updated'));
+    window.dispatchEvent(new CustomEvent('tours-purchased'));
+    
+    await fetchCart(); // Refresh cart after successful purchase
     showCart.value = false;
   } catch (err) {
-    alert('Purchase failed!');
+    console.error('Purchase failed:', err);
+    console.error('Error response:', err.response?.data);
+    alert('Purchase failed! Please try again.');
   }
 }
 
 onMounted(() => {
   fetchCart();
+  
+  // Listen for cart updates
+  window.addEventListener('cart-updated', fetchCart);
+  
+  // Legacy event listener for opening cart
   window.addEventListener('open-cart', () => {
     fetchCart();
     showCart.value = true;
@@ -100,42 +130,48 @@ onMounted(() => {
 </script>
 
 <style scoped>
-  .shopping-cart {
-    position: fixed;
-    top: 5rem;
-    right: 1rem;
-    z-index: 1000;
+  .shopping-cart-navbar {
+    position: relative;
+    display: inline-block;
   }
   .cart-button {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: transparent;
+    border: none;
+    color: #667eea;
     border-radius: 50px;
     padding: 0.5rem 1rem;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     position: relative;
+    transition: color 0.3s ease;
+  }
+  .cart-button:hover {
+    color: #4c63d2;
   }
   .cart-badge {
     background: #e53e3e;
     color: #fff;
     border-radius: 50%;
-    padding: 0.2rem 0.6rem;
-    font-size: 1rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8rem;
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    text-align: center;
   }
   .cart-content {
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
     min-width: 320px;
     max-width: 400px;
     padding: 1rem;
     position: absolute;
-    top: 48px;
+    top: 100%;
     right: 0;
+    margin-top: 0.5rem;
+    z-index: 1000;
   }
   .cart-header {
     display: flex;

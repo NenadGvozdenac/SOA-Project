@@ -4,6 +4,8 @@ import Login from './components/Login.vue'
 import Register from './components/Register.vue'
 import UsersList from './components/UsersList.vue'
 import AuthorMapCheckpoint from './components/AuthorMapCheckpoint.vue'
+import PositionSimulator from './components/PositionSimulator.vue'
+import ActiveTour from './components/ActiveTour.vue'
 import Tours from './components/Tours.vue'
 import ToursForTourist from './components/ToursForTourist.vue'
 import ShoppingCart from './components/ShoppingCart.vue'
@@ -36,6 +38,8 @@ const routes = [
   { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/followed-blogs', component: FollowedBlogs },
   { path: '/map-checkpoint', component: AuthorMapCheckpoint },
+  { path: '/position-simulator', component: PositionSimulator, meta: { requiresAuth: true } },
+  { path: '/active-tour', component: ActiveTour, meta: { requiresAuth: true } },
   { path: '/tours', component: Tours },
   { path: '/tours-for-tourist', component: ToursForTourist },
   { path: '/shopping-cart', component: ShoppingCart },
@@ -50,6 +54,11 @@ const routes = [
     path: '/blog/:id', 
     component: () => import('./components/BlogDetail.vue'),
     meta: { requiresAuth: true }
+  },
+  // Catch-all route for 404 pages
+  { 
+    path: '/:pathMatch(.*)*', 
+    redirect: '/' 
   }
 ]
 

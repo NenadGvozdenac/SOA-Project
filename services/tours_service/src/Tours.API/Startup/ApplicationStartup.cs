@@ -37,6 +37,8 @@ public static class ApplicationStartup
         services.AddScoped<ICrudRepository<ShoppingCart>, CrudDatabaseRepository<ShoppingCart, ToursContext>>();
         services.AddScoped<ICrudRepository<OrderItem>, CrudDatabaseRepository<OrderItem, ToursContext>>();
         services.AddScoped<ICrudRepository<TourPurchaseToken>, CrudDatabaseRepository<TourPurchaseToken, ToursContext>>();
+        services.AddScoped<ICrudRepository<TourExecution>, CrudDatabaseRepository<TourExecution, ToursContext>>();
+        services.AddScoped<ICrudRepository<CheckpointProgress>, CrudDatabaseRepository<CheckpointProgress, ToursContext>>();
     }
 
     private static void SetupMediatR(IServiceCollection services)
