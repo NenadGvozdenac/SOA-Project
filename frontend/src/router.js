@@ -11,6 +11,7 @@ import TourReviews from './components/TourReviews.vue'
 import Profiles from './components/Profiles.vue'
 import FollowedBlogs from './components/FollowedBlogs.vue'
 import Profile from './components/Profile.vue'
+import AddTourReview from './components/AddTourReview.vue'
 
 // Helper function to check if user is authenticated
 function isAuthenticated() {
@@ -40,6 +41,7 @@ const routes = [
   { path: '/tours-for-tourist', component: ToursForTourist },
   { path: '/shopping-cart', component: ShoppingCart },
   { path: '/tour-reviews', component: TourReviews },
+  { path: '/add-tour-review', component: AddTourReview },
   { path: '/purchased-tours', component: () => import('./components/PurchasedTours.vue') },
   { 
     path: '/blogs', 

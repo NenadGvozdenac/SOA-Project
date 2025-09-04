@@ -92,7 +92,11 @@ async function addToCart(tour) {
           }
         );
         console.log('addToCart response:', response);
-        // Možeš emitovati event ili osvežiti korpu
+        
+        window.dispatchEvent(new Event('cart-updated'));
+        
+        
+        
       } catch (error) {
         console.error('Error adding tour to cart:', error);
         if (error.response) {
@@ -104,6 +108,7 @@ async function addToCart(tour) {
         } else {
           console.error('Error setting up request:', error.message);
         }
+        alert('Failed to add tour to cart!');
       }
     }
 

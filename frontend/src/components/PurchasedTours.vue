@@ -17,6 +17,7 @@
           <p><strong>Archived:</strong> {{ tour.archivedAt }}</p>
           <p><strong>Length (km):</strong> {{ tour.lengthKm }}</p>
           <p><strong>Created:</strong> {{ tour.createdAt }}</p>
+          <button @click="goToReview(tour.id)" class="review-btn">Rate Tour</button>
           <div v-if="tour.checkpoints && tour.checkpoints.length">
             <h3>Checkpoints:</h3>
             <ul>
@@ -38,9 +39,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const tours = ref([]);
 const loading = ref(true);
+const router = useRouter();
 
 onMounted(async () => {
   try {
@@ -55,6 +58,10 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const goToReview = (tourId) => {
+  router.push({ path: '/add-tour-review', query: { tourId } });
+};
 </script>
 
 <style scoped>
@@ -72,5 +79,20 @@ onMounted(async () => {
 }
 h2 {
   margin-top: 0;
+}
+.review-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: transform 0.2s;
+}
+.review-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 </style>

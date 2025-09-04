@@ -11,7 +11,10 @@
       <div v-if="!cartItems.orderItems || cartItems.orderItems.length === 0" class="cart-empty">Cart is empty</div>
       <div v-else>
         <div v-for="item in cartItems.orderItems || []" :key="item.id" class="cart-item">
-          <span class="cart-item-title">{{ item.tourName }}</span>
+          <div class="cart-item-info">
+            <span class="cart-item-title">{{ getTourName(item.tourId) }}</span>
+            <span class="cart-item-id">ID: {{ item.tourId }}</span>
+          </div>
           <span class="cart-item-price">{{ item.price }} €</span>
           <button class="remove-btn" @click="removeFromCart(item.id)">🗑️</button>
         </div>
@@ -34,8 +37,34 @@ import axios from 'axios';
 const showCart = ref(false)
 const cartItems = ref([])
 const totalPrice = ref(0)
+const tourNames = ref({}) // Cache for tour names
 
 const API_URL = 'http://localhost:8082/api/tours'
+
+// Function to get tour name by ID
+const getTourName = (tourId) => {
+  return tourNames.value[tourId] || `Tour ${tourId}`;
+}
+
+// Function to fetch tour details by ID
+async function fetchTourById(tourId) {
+  if (tourNames.value[tourId]) return; // Already cached
+  
+  const jwt = localStorage.getItem('token');
+  try {
+    // Get all tours and find the specific one (you can optimize this with a specific endpoint if available)
+    const response = await axios.get(`http://localhost:8082/api/tours`, {
+      headers: { Authorization: `Bearer ${jwt}` }
+    });
+    const tours = response.data.value || [];
+    const tour = tours.find(t => t.id === tourId);
+    if (tour) {
+      tourNames.value[tourId] = tour.name;
+    }
+  } catch (err) {
+    console.error(`Error fetching tour ${tourId}:`, err);
+  }
+}
 
 async function fetchCart() {
   const jwt = localStorage.getItem('token');
@@ -50,6 +79,11 @@ async function fetchCart() {
 
     // racunamo ukupnu cenu preko orderItems
     totalPrice.value = cartItems.value.orderItems.reduce((sum, item) => sum + item.price, 0);
+    
+    // Fetch tour names for all items in cart
+    for (const item of cartItems.value.orderItems) {
+      await fetchTourById(item.tourId);
+    }
   } catch (err) {
     cartItems.value = { orderItems: [] };
     totalPrice.value = 0;
@@ -95,6 +129,11 @@ onMounted(() => {
   window.addEventListener('open-cart', () => {
     fetchCart();
     showCart.value = true;
+  });
+  
+  // Listen for cart updates
+  window.addEventListener('cart-updated', () => {
+    fetchCart();
   });
 });
 </script>
@@ -160,9 +199,19 @@ onMounted(() => {
     padding: 0.5rem 0;
     border-bottom: 1px solid #eee;
   }
-  .cart-item-title {
+  .cart-item-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .cart-item-title {
     font-weight: 500;
+    color: #333;
+  }
+  .cart-item-id {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.2rem;
   }
   .cart-item-price {
     margin-left: 1rem;

@@ -43,7 +43,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
+#  ///////////////////////////////////////////////////////////////////////////////
   gateway_net:
     build:
       context: ./gateway-net
@@ -273,7 +273,7 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     attach: false
-  
+  #///////////////////////////////////////////////////////////////////////////////
   mongo_db:
     container_name: mongo_db
     image: mongo:latest

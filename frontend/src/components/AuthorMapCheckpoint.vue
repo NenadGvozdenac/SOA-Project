@@ -5,10 +5,10 @@
       <div><strong>Opis:</strong> {{ tourInfo.description }}</div>
       <div><strong>Težina:</strong> {{ difficultyMap[tourInfo.difficulty] }}</div>
       <div><strong>Status:</strong> {{ statusMap[tourInfo.status] }}</div>
-      <div><strong>Cena:</strong> {{ tourInfo.price }} RSD</div>
+      <div><strong>Cena:</strong> {{ tourInfo.price }} EUR</div>
       <div><strong>Tagovi:</strong> <span v-for="tag in tourInfo.tags" :key="tag">{{ tag }}</span></div>
-      <div v-if="tourInfo.publishedAt"><strong>Objavljena:</strong> {{ tourInfo.publishedAt }}</div>
-      <div v-if="tourInfo.archivedAt"><strong>Arhivirana:</strong> {{ tourInfo.archivedAt }}</div>
+      <div v-if="tourInfo.publishedAt"><strong>Objavljena:</strong> {{ formatDate(tourInfo.publishedAt) }}</div>
+      <div v-if="tourInfo.archivedAt"><strong>Arhivirana:</strong> {{ formatDate(tourInfo.archivedAt) }}</div>
     </div>
     <div v-if="actionMessage" class="action-message">{{ actionMessage }}</div>
     <h2>Add Key Checkpoint to Tour</h2>
@@ -89,7 +89,7 @@
                 Tura trenutno ne ispunjava sve uslove za objavu!
               </div>
             </div>
-            <input type="number" v-model="publishPrice" min="0" step="0.01" placeholder="Cena (RSD)" />
+            <input type="number" v-model="publishPrice" min="0" step="0.01" placeholder="Cena (EUR)" />
             <div style="margin-top:1rem;">
               <button class="btn btn-primary" @click="publishTour" :disabled="!canPublishTour">Objavi</button>
               <button class="btn btn-secondary" @click="showPublishModal = false" style="margin-left:1rem;">Otkaži</button>
@@ -131,6 +131,19 @@ const tourInfo = ref(null);
 const actionMessage = ref('');
 const difficultyMap = { 0: 'Easy', 1: 'Medium', 2: 'Hard', 'Easy': 'Easy', 'Medium': 'Medium', 'Hard': 'Hard' };
 const statusMap = { 0: 'Draft', 1: 'Published', 2: 'Archived', 'Draft': 'Draft', 'Published': 'Published', 'Archived': 'Archived' };
+
+// Function to format date from timestamp to readable format
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('sr-RS', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
 const deleteCheckpoint = async (id) => {
   try {
