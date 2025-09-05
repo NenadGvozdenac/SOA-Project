@@ -2,6 +2,7 @@
 using System.Reflection;
 using followings_service.src.Followings.BuildingBlocks.Infrastructure.Database;
 using followings_service.src.Followings.BuildingBlocks.Infrastructure.StakeholdersService;
+using followings_service.src.Followings.BuildingBlocks.Infrastructure.BlogsService;
 
 namespace followings_service.src.Followings.API.Startup;
 
@@ -29,5 +30,6 @@ public static class ApplicationStartup
     private static void SetupHttpClients(IServiceCollection services)
     {
         services.AddHttpClient<IStakeholdersServiceClient, StakeholdersServiceClient>();
+        services.AddHttpClient<IBlogsServiceClient, BlogsServiceClient>();
     }
 }

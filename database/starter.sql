@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     biography VARCHAR(255) NOT NULL,
     moto VARCHAR(255) NOT NULL,
+    profile_picture BYTEA,
     role_id SERIAL,
 
     blocked BOOLEAN NOT NULL DEFAULT FALSE,

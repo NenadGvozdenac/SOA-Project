@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"log"
 	"soa-project/stakeholders-service/config"
 	"soa-project/stakeholders-service/internal/domain/interfaces"
@@ -71,8 +72,25 @@ func (repo *UserRepository) GetByIDs(ids []uint) (*[]models.User, error) {
 
 // UpdateByID updates a user's data by ID
 func (repo *UserRepository) UpdateByID(id uint, user *models.User) error {
-	if err := config.DB.Model(&models.User{}).Where("id = ?", id).Updates(user).Error; err != nil {
-		return err
+	fmt.Printf("DEBUG Repository: Updating user ID %d\n", id)
+	fmt.Printf("DEBUG Repository: Profile picture length: %d\n", len(user.ProfilePicture))
+
+	// Use Select("*") to update all fields including zero values
+	result := config.DB.Model(&models.User{}).Where("id = ?", id).Select("name", "surname", "email", "username", "biography", "moto", "profile_picture", "password").Updates(user)
+
+	fmt.Printf("DEBUG Repository: Rows affected: %d\n", result.RowsAffected)
+	if result.Error != nil {
+		fmt.Printf("DEBUG Repository: Error: %v\n", result.Error)
+		return result.Error
+	}
+	return nil
+}
+
+// UpdateBlockedStatus updates only the blocked status of a user
+func (repo *UserRepository) UpdateBlockedStatus(id uint, blocked bool) error {
+	result := config.DB.Model(&models.User{}).Where("id = ?", id).Update("blocked", blocked)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }
